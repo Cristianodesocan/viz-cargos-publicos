@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consejo de Gobierno de Canarias · Patrimonio y retribución - ODESOCAN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="d3.v7.min.js"></script>
+<script src="logos_base64.js"></script>
+<style>
+  :root{
+    --teal:#00C8B4; --teal-dark:#009E8E; --teal-light:#E0FAF7;
+    --navy-dark:#0D1B2A; --navy-mid:#1A2F45; --navy-deep:#0F3460;
+    --white:#fff; --off-white:#F5F8FA; --text-main:#1A2F45; --text-muted:#6B8CA5;
+    --border-soft:#E4EDF5; --border-card:rgba(13,27,42,.08); --red:#FF4757;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--off-white);color:var(--text-main);
+    font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4,.font-display{font-family:'Space Grotesk',sans-serif;}
+  main{max-width:1180px;margin:0 auto;padding:0 24px 56px;}
+  a{color:var(--teal-dark);}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--teal);border-radius:99px;}
+
+  /* ---------- 1. HERO ---------- */
+  .hero{position:relative;overflow:hidden;border-radius:0 0 26px 26px;
+    background:linear-gradient(145deg,#0D1B2A 0%,#1A2F45 60%,#0F3460 100%);
+    color:#fff;padding:34px clamp(22px,4vw,48px) 40px;margin-bottom:44px;}
+  .hero::before,.hero::after{content:"";position:absolute;border-radius:50%;
+    background:radial-gradient(circle,rgba(0,200,180,.25),transparent 70%);pointer-events:none;}
+  .hero::before{width:420px;height:420px;top:-160px;right:-120px;}
+  .hero::after{width:320px;height:320px;bottom:-180px;left:-80px;
+    background:radial-gradient(circle,rgba(0,200,180,.14),transparent 70%);}
+  .hero-inner{position:relative;max-width:1180px;margin:0 auto;}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;
+    background:rgba(0,200,180,.15);border:1px solid rgba(0,200,180,.3);
+    border-radius:99px;padding:6px 14px;font-family:'Space Grotesk';font-weight:700;
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8FF3E7;}
+  .hero-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);
+    box-shadow:0 0 0 0 rgba(0,200,180,.7);animation:pulso 2.2s infinite;}
+  @keyframes pulso{0%{box-shadow:0 0 0 0 rgba(0,200,180,.6);}70%{box-shadow:0 0 0 9px rgba(0,200,180,0);}100%{box-shadow:0 0 0 0 rgba(0,200,180,0);}}
+  .hero h1{font-size:clamp(1.8rem,4vw,2.7rem);font-weight:700;line-height:1.1;
+    letter-spacing:-.01em;margin:16px 0 0;max-width:900px;}
+  .hero h1 em{font-style:normal;color:var(--teal);}
+  .hero .sub{margin:14px 0 0;color:rgba(255,255,255,.68);font-size:clamp(.95rem,1.4vw,1.06rem);
+    line-height:1.6;max-width:760px;}
+  .hero .fuente{margin:20px 0 0;font-size:12.5px;color:rgba(255,255,255,.5);
+    border-top:1px solid rgba(255,255,255,.12);padding-top:14px;max-width:820px;line-height:1.55;}
+  .hero .fuente b{color:rgba(255,255,255,.82);font-weight:600;}
+  .hero-kpis{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;}
+  .kpi{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+    border-radius:14px;padding:14px 18px;min-width:120px;}
+  .kpi .n{font-family:'Space Grotesk';font-weight:700;font-size:clamp(1.5rem,3vw,2rem);color:var(--teal);line-height:1;}
+  .kpi .l{margin-top:6px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);}
+
+  /* ---------- section labels ---------- */
+  .section-label{display:flex;align-items:center;gap:12px;margin:0 0 16px;flex-wrap:wrap;}
+  .pill{background:var(--teal-light);color:var(--teal-dark);font-family:'Space Grotesk';
+    font-weight:700;text-transform:uppercase;border-radius:99px;padding:5px 14px;
+    font-size:11px;letter-spacing:.08em;white-space:nowrap;}
+  .label-text{font-family:'Space Grotesk';font-weight:700;color:var(--navy-mid);
+    font-size:clamp(1.2rem,2.4vw,1.55rem);}
+  .label-sub{color:var(--text-muted);font-size:.9rem;margin:-8px 0 18px;max-width:720px;line-height:1.5;}
+  section.bloque{margin-bottom:52px;}
+
+  /* ---------- 2. CUADRO RESUMEN (ficha) ---------- */
+  .ficha{background:#fff;border:1px solid var(--border-soft);border-radius:16px;
+    box-shadow:0 2px 16px rgba(13,27,42,.08);padding:20px;scroll-margin-top:18px;}
+  .ficha-vacia{color:var(--text-muted);font-size:14.5px;display:flex;align-items:center;
+    justify-content:center;gap:10px;min-height:120px;text-align:center;flex-direction:column;}
+  .ficha-vacia svg{opacity:.5;}
+  .ficha-card{display:flex;gap:20px;}
+  .ficha-foto{width:118px;height:150px;object-fit:cover;object-position:center top;
+    border-radius:12px;flex:none;background:#22384c;border:3px solid var(--border-soft);}
+  .ficha-foto.vacia{display:flex;align-items:center;justify-content:center;font-weight:800;
+    color:var(--text-muted);font-size:32px;background:#EEF3F6;font-family:'Space Grotesk';}
+  .ficha-body{flex:1;min-width:0;}
+  .ficha-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+  .ficha-nombre{font-family:'Space Grotesk';font-size:1.5rem;font-weight:700;line-height:1.12;color:var(--navy-dark);}
+  .ficha-cargo{font-weight:600;color:var(--navy-mid);margin:4px 0 0;font-size:.98rem;}
+  .badge-partido{display:inline-flex;align-items:center;gap:7px;border-radius:99px;
+    padding:5px 13px;font-family:'Space Grotesk';font-weight:700;font-size:12px;
+    border:1.5px solid;background:#fff;white-space:nowrap;}
+  .badge-partido .sw{width:9px;height:9px;border-radius:50%;}
+  .ficha-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:14px 22px;margin:18px 0 4px;}
+  .ficha-grid .k{color:var(--text-muted);font-size:10.5px;text-transform:uppercase;
+    letter-spacing:.08em;font-weight:700;font-family:'Space Grotesk';}
+  .ficha-grid .v{font-family:'Space Grotesk';font-weight:700;font-size:1.3rem;line-height:1.1;color:var(--navy-dark);margin-top:3px;}
+  .ficha-grid .v.teal{color:var(--teal-dark);}
+  .ficha-secc{margin-top:20px;border-top:1px solid var(--border-soft);padding-top:16px;}
+  .ficha-secc h4{margin:0 0 10px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--teal-dark);font-weight:700;}
+  .tray-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;}
+  .tray-list li{position:relative;padding-left:18px;font-size:13.5px;line-height:1.45;color:var(--navy-mid);}
+  .tray-list li::before{content:"";position:absolute;left:0;top:7px;width:7px;height:7px;
+    border-radius:50%;background:var(--teal);}
+  .merito-list li::before{background:var(--navy-deep);}
+  .doscol{display:grid;grid-template-columns:1fr 1fr;gap:26px;}
+  @media(max-width:720px){.ficha-card{flex-direction:column;}.doscol{grid-template-columns:1fr;}}
+
+  /* ---------- 3. ORGANIGRAMA ---------- */
+  .panel{position:relative;background:#fff;border:1px solid var(--border-card);
+    border-radius:24px;box-shadow:0 2px 16px rgba(13,27,42,.06);padding:8px 6px 14px;overflow:hidden;}
+  #svgOrg{display:block;width:100%;height:auto;}
+  .conector{fill:none;stroke:#CFDDE8;stroke-width:1.6;}
+  .nodo{cursor:pointer;}
+  .nodo .aro{transition:stroke-width .16s ease;}
+  .nodo:hover .aro{stroke-width:6;}
+  .nodo.sel .halo{opacity:1;}
+  .nodo .halo{opacity:0;transition:opacity .16s ease;}
+  .nodo-tag{font-family:'Space Grotesk';font-weight:700;font-size:9.5px;letter-spacing:.14em;
+    text-transform:uppercase;fill:var(--teal-dark);text-anchor:middle;}
+  .nodo-nombre{font-family:'Space Grotesk';font-weight:600;font-size:12.5px;fill:var(--navy-dark);text-anchor:middle;}
+  .nodo-depto{font-family:'Inter';font-size:10.5px;fill:var(--text-muted);text-anchor:middle;}
+  .nodo.apagado{opacity:.32;}
+
+  .leyenda{display:flex;flex-wrap:wrap;gap:8px 16px;margin:14px 2px 0;align-items:center;}
+  .leyenda .it{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--navy-mid);font-weight:500;}
+  .leyenda .ring{width:15px;height:15px;border-radius:50%;border:3px solid;background:#fff;}
+  .leyenda .hint{margin-left:auto;color:var(--text-muted);font-size:12px;}
+  /* chips de logo de partido (sustituyen a los círculos de color en etiquetas) */
+  .plogo{display:inline-flex;align-items:center;justify-content:center;background:#fff;border-radius:5px;
+    padding:2px;box-shadow:0 0 0 1px rgba(13,27,42,.08);flex:none;vertical-align:middle;}
+  .plogo img{width:100%;height:100%;object-fit:contain;display:block;}
+  .leyenda .lchip{width:30px;height:30px;border-radius:8px;border:2.5px solid;background:#fff;
+    display:inline-flex;align-items:center;justify-content:center;padding:3px;flex:none;}
+  .leyenda .lchip img{width:100%;height:100%;object-fit:contain;}
+  .leyenda .lchip .dot{width:13px;height:13px;border-radius:50%;}
+
+  /* tooltip */
+  .tt{position:fixed;z-index:50;pointer-events:none;opacity:0;transition:opacity .12s;
+    background:var(--navy-dark);color:#fff;border:1px solid rgba(0,200,180,.2);
+    border-radius:12px;padding:12px 14px;box-shadow:0 12px 34px rgba(0,0,0,.32);
+    max-width:330px;font-size:13px;}
+  .tt .th{display:flex;gap:11px;align-items:center;}
+  .tt .th > img{width:46px;height:58px;object-fit:cover;object-position:center top;border-radius:7px;
+    border:2px solid rgba(255,255,255,.18);flex:none;}
+  .tt .thmeta{flex:1;min-width:0;}
+  /* logo del partido, grande, a la derecha del nombre */
+  .tt .plogo-xl{width:52px;height:52px;border-radius:11px;background:#fff;flex:none;
+    display:flex;align-items:center;justify-content:center;padding:7px;box-shadow:0 0 0 1px rgba(255,255,255,.18);}
+  .tt .plogo-xl img{width:100%;height:100%;object-fit:contain;display:block;}
+  .tt .pdot-xl{width:52px;height:52px;border-radius:11px;flex:none;display:flex;align-items:center;
+    justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:13px;color:#fff;
+    box-shadow:0 0 0 1px rgba(255,255,255,.18);}
+  .tt .nombre{font-family:'Space Grotesk';font-weight:700;font-size:14.5px;color:var(--teal);line-height:1.15;}
+  .tt .cargo{color:rgba(255,255,255,.72);font-size:11.5px;margin-top:2px;line-height:1.25;}
+  .tt .filas{margin-top:10px;border-top:1px solid rgba(255,255,255,.12);padding-top:9px;display:grid;gap:5px;}
+  .tt .fila{display:flex;justify-content:space-between;gap:16px;font-size:12px;}
+  .tt .fila .kk{color:rgba(255,255,255,.55);}
+  .tt .fila .vv{font-family:'Space Grotesk';font-weight:700;color:#fff;}
+  .tt .part{display:inline-flex;align-items:center;gap:6px;}
+  .tt .part .sw{width:8px;height:8px;border-radius:50%;}
+
+  /* ---------- 4. GRÁFICO SALARIOS ---------- */
+  .chart-wrap{background:#fff;border:1px solid var(--border-card);border-radius:24px;
+    box-shadow:0 2px 16px rgba(13,27,42,.06);padding:22px clamp(14px,3vw,28px) 18px;}
+  .chart-tag{display:inline-block;background:var(--teal-light);color:var(--teal-dark);
+    font-family:'Space Grotesk';font-weight:700;font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;border-radius:6px;padding:4px 10px;}
+  .chart-title{font-family:'Space Grotesk';font-weight:700;font-size:1.15rem;color:var(--navy-dark);margin:10px 0 2px;}
+  .chart-sub{color:var(--navy-mid);font-size:.9rem;margin:0 0 8px;}
+  #svgSal{display:block;width:100%;height:auto;}
+  .bar-g{cursor:pointer;}
+  .bar{transition:opacity .15s;}
+  .bar-g:hover .bar{opacity:.86;}
+  .bar-name{font-family:'Space Grotesk';font-weight:600;font-size:12.5px;fill:var(--navy-dark);}
+  .bar-sub{font-size:9.5px;fill:var(--text-muted);font-family:'Inter';}
+  .bar-val{font-family:'Space Grotesk';font-weight:700;font-size:12.5px;}
+  .gridline{stroke:#EEF3F8;stroke-width:1;}
+  .axis-lab{font-size:10.5px;fill:var(--text-muted);font-family:'Inter';}
+  figcaption{font-family:'Inter';font-size:.78rem;color:var(--text-muted);margin-top:14px;line-height:1.5;}
+
+  /* ---------- footer ---------- */
+  footer{margin-top:20px;border-top:1px solid var(--border-soft);padding-top:20px;
+    color:var(--text-muted);font-size:12.5px;line-height:1.6;}
+  footer b{color:var(--navy-mid);}
+  .marca{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-family:'Space Grotesk';
+    font-weight:700;color:var(--navy-mid);font-size:14px;}
+  .nota-metod{background:#FFF9E9;border:1px solid #F2E2AE;border-radius:10px;padding:12px 14px;
+    color:#8A6D1B;font-size:12.5px;line-height:1.55;margin:6px 0 16px;}
+  .nota-metod b{color:#6b520f;}
+</style>
+<style>/* modo incrustado en el shell de pestañas: oculta el badge ODESOCAN redundante */
+  html.embed .hero-badge{display:none!important;}
+</style>
+<script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
+</head>
+<body>
+
+<!-- 1. HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <span class="hero-badge"><span class="dot"></span>Odesocan · Observatorio de Derechos Sociales de Canarias</span>
+    <h1>Consejo de Gobierno de Canarias: <em>quién gobierna, cuánto cobra y qué patrimonio declara</em></h1>
+    <p class="sub">Organigrama interactivo de los cargos con rango de <b>Presidencia, Vicepresidencia y consejerías</b>
+      del Gobierno de Canarias (XI Legislatura). Cada burbuja es una persona: su color de borde indica el partido,
+      y al seleccionarla se despliega su retribución, patrimonio declarado y trayectoria. No se incluyen
+      viceconsejerías ni direcciones generales.</p>
+    <div class="hero-kpis" id="heroKpis"></div>
+    <p class="fuente"><b>Fuente:</b> Organigrama del Gobierno de Canarias (fichas de altos cargos) y declaraciones
+      de bienes de los altos cargos. <b>Extracción, normalización y elaboración:</b> ODESOCAN (julio 2026).</p>
+  </div>
+</header>
+
+<main>
+  <!-- 2. CUADRO RESUMEN -->
+  <section class="bloque">
+    <div class="section-label">
+      <span class="pill">Cuadro resumen</span>
+      <span class="label-text">Ficha del miembro seleccionado</span>
+    </div>
+    <p class="label-sub">Haz clic en cualquier burbuja del organigrama o en cualquier barra del gráfico de
+      salarios para ver aquí su ficha completa.</p>
+    <div class="ficha" id="ficha">
+      <div class="ficha-vacia">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#6B8CA5" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <div>Selecciona un miembro del Gobierno para ver su ficha detallada.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. ORGANIGRAMA -->
+  <section class="bloque">
+    <div class="section-label">
+      <span class="pill">Organigrama</span>
+      <span class="label-text">Estructura jerárquica del Gobierno</span>
+    </div>
+    <p class="label-sub">Presidencia, Vicepresidencia y las once consejerías. El borde y el logo de cada burbuja
+      indican su partido. Pasa el cursor para un resumen rápido; haz clic para fijar la ficha completa arriba.</p>
+    <div class="panel">
+      <svg id="svgOrg"></svg>
+    </div>
+  </section>
+
+  <!-- 4. GRÁFICO SALARIOS -->
+  <section class="bloque">
+    <div class="section-label">
+      <span class="pill">Gráfico 1</span>
+      <span class="label-text">Top 10 · Retribución íntegra anual</span>
+    </div>
+    <div class="chart-wrap">
+      <span class="chart-tag">Gráfico 1</span>
+      <div class="chart-title">Los diez cargos del Gobierno con mayor retribución declarada</div>
+      <p class="chart-sub">Retribución íntegra anual (€), de mayor a menor. El aro de cada foto indica el partido.</p>
+      <svg id="svgSal"></svg>
+      <figcaption>Fuente: retribución íntegra anual declarada en la ficha del organigrama del Gobierno de Canarias.
+        Elaboración: ODESOCAN. La afiliación política es una asignación de ODESOCAN a partir de fuentes públicas.</figcaption>
+    </div>
+  </section>
+
+  <footer>
+    <div class="marca">
+      <svg width="22" height="22" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="#00C8B4" stroke-width="2.5"/><circle cx="20" cy="20" r="3.4" fill="#00C8B4"/><g stroke="#00C8B4" stroke-width="2.5"><line x1="20" y1="3" x2="20" y2="9"/><line x1="20" y1="31" x2="20" y2="37"/><line x1="3" y1="20" x2="9" y2="20"/><line x1="31" y1="20" x2="37" y2="20"/></g></svg>
+      Odesocan · Observatorio de Derechos Sociales de Canarias
+    </div>
+    <div class="nota-metod">
+      <b>Nota metodológica.</b> La <b>afiliación política</b> de cada cargo no consta en la fuente oficial: ha sido
+      asignada por ODESOCAN a partir del reparto público del pacto de gobierno (CC–PP, julio 2023) y debe verificarse.
+      El <b>patrimonio</b> es el total declarado con herencia; la <b>retribución</b> es la íntegra anual publicada en el
+      organigrama. Se distingue «sin declaración disponible» de «sin bienes declarados»: no se imputan valores.
+    </div>
+    <b>Odesocan</b> · Vigilamos los derechos sociales de Canarias · info@odesocan.org ·
+    Calle los Dragos, Nº 45, 3ª planta, 35118 Agüimes (Las Palmas).
+  </footer>
+</main>
+
+<div class="tt" id="tt"></div>
+
+<script>
+let DATOS = [];   // se rellena por fetch a Supabase (ver arrancar() al final)
+const META  = window.GEN_META || {};
+const PARTIDOS = {
+  CC:  {nombre:'Coalición Canaria',                  color:'#F2C230'},
+  PP:  {nombre:'Partido Popular',                    color:'#1668B8'},
+  AHI: {nombre:'Agrupación Herreña Independiente',   color:'#3E9B57'},
+};
+const colorPartido = p => (PARTIDOS[p]||{}).color || '#999';
+const LOGOS = window.LOGOS || {};
+const logoPartido = p => LOGOS[p] || null;   // CC y PP tienen logo; AHI no -> se degrada a color
+// Marca del partido para HTML: logo si existe, si no un punto del color del partido.
+function marcaPartido(p, px){
+  const lg = logoPartido(p);
+  return lg
+    ? `<span class="plogo" style="width:${px}px;height:${px}px"><img src="${lg}" alt="${p}"></span>`
+    : `<span class="sw" style="background:${colorPartido(p)};width:${Math.round(px*.55)}px;height:${Math.round(px*.55)}px;border-radius:50%;display:inline-block;flex:none"></span>`;
+}
+const fmtEur  = n => n==null ? '-' : new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
+const fmtEur2 = n => n==null ? '-' : new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
+const iniciales = nom => nom.split(/\s+/).slice(0,2).map(s=>s[0]||'').join('').toUpperCase();
+let seleccion = null;
+// Ancho fiable del contenedor; si el entorno devuelve un ancho degenerado (~0),
+// usa innerWidth o un fallback de escritorio.
+function anchoDe(el, fallback){ const w = el ? el.clientWidth : 0; return (!w || w < 80) ? Math.max(window.innerWidth||0, fallback) : w; }
+
+/* ---------- KPIs del hero ---------- */
+function pintarKpis(){
+  const salarios = DATOS.map(d=>d.salario).filter(Boolean);
+  const patr = DATOS.map(d=>d.patrimonio).filter(x=>x!=null);
+  const rep = {CC:0, PP:0, AHI:0};
+  DATOS.forEach(d=>{ if(rep[d.partido]!=null) rep[d.partido]++; });
+  const kpis = [
+    {n: DATOS.length, l:'Miembros del Gobierno'},
+    {n: fmtEur(d3.mean(salarios)), l:'Retribución media'},
+    {n: fmtEur(d3.mean(patr)), l:'Patrimonio medio'},
+    {n: `${rep.CC}·${rep.PP}·${rep.AHI}`, l:'CC · PP · AHI'},
+  ];
+  d3.select('#heroKpis').selectAll('div.kpi').data(kpis).join('div').attr('class','kpi')
+    .html(d=>`<div class="n">${d.n}</div><div class="l">${d.l}</div>`);
+}
+
+/* ---------- Ficha (cuadro resumen) ---------- */
+/* ---------- contador animado para las cifras monetarias de la ficha ---------- */
+function animarContador(node, valor, dur){
+  const fin = fmtEur2(valor);
+  if(valor==null){ node.textContent = '-'; return; }
+  if(document.hidden){ node.textContent = fin; return; }   // sin animación si la pestaña no es visible
+  d3.select(node).interrupt().transition().duration(dur).ease(d3.easeCubicOut)
+    .tween('contador', function(){
+      const i = d3.interpolateNumber(0, valor);
+      return t => { node.textContent = (t<1) ? fmtEur(i(t)) : fin; };   // entero al contar, exacto al final
+    });
+}
+
+function pintarFicha(d){
+  const pc = colorPartido(d.partido), pn = PARTIDOS[d.partido].nombre;
+  const foto = d.foto
+    ? `<img class="ficha-foto" src="${d.foto}" alt="${d.nombre}">`
+    : `<div class="ficha-foto vacia">${iniciales(d.nombre)}</div>`;
+  const trayHTML = d.trayectoria.length
+    ? `<ul class="tray-list">${d.trayectoria.map(t=>`<li>${t}</li>`).join('')}</ul>`
+    : `<div style="color:var(--text-muted);font-size:13px">Sin trayectoria registrada en la fuente.</div>`;
+  const merHTML = d.meritos.length
+    ? `<ul class="tray-list merito-list">${d.meritos.map(t=>`<li>${t}</li>`).join('')}</ul>`
+    : `<div style="color:var(--text-muted);font-size:13px">Sin méritos académicos registrados.</div>`;
+  const pos = d.fecha_posesion ? `<div><div class="k">Toma de posesión</div><div class="v">${d.fecha_posesion}</div></div>` : '';
+  d3.select('#ficha').html(`
+    <div class="ficha-card">
+      ${foto}
+      <div class="ficha-body">
+        <div class="ficha-head">
+          <div>
+            <div class="ficha-nombre">${d.nombre}</div>
+            <div class="ficha-cargo">${d.cargo}</div>
+          </div>
+          <span class="badge-partido" style="border-color:${pc};color:${pc}">${marcaPartido(d.partido,20)}${pn}</span>
+        </div>
+        <div class="ficha-grid">
+          <div><div class="k">Retribución íntegra anual</div><div class="v teal v-count" data-valor="${d.salario==null?'':d.salario}">${d.salario==null?'-':fmtEur(0)}</div></div>
+          <div><div class="k">Patrimonio total declarado</div><div class="v v-count" data-valor="${d.patrimonio==null?'':d.patrimonio}">${d.patrimonio==null?'-':fmtEur(0)}</div></div>
+          ${pos}
+        </div>
+        <div class="doscol">
+          <div class="ficha-secc"><h4>Trayectoria profesional</h4>${trayHTML}</div>
+          <div class="ficha-secc"><h4>Formación académica</h4>${merHTML}</div>
+        </div>
+      </div>
+    </div>`);
+  // dispara el contador de cada cifra monetaria
+  d3.select('#ficha').selectAll('.v-count').each(function(){
+    const raw = this.getAttribute('data-valor');
+    animarContador(this, raw==='' ? null : +raw, 850);
+  });
+}
+
+function seleccionar(d){
+  seleccion = d.ou;
+  pintarFicha(d);
+  d3.selectAll('.nodo').classed('sel', n=>n.ou===d.ou);
+  d3.selectAll('.bar-g').classed('activa', n=>n.ou===d.ou)
+    .select('rect.bar').attr('stroke', n=>n.ou===d.ou?'#0D1B2A':'none').attr('stroke-width',2.5);
+  document.getElementById('ficha').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ---------- Tooltip ---------- */
+const TT = d3.select('#tt');
+function tooltipHTML(d){
+  const pc=colorPartido(d.partido), lg=logoPartido(d.partido), pn=(PARTIDOS[d.partido]||{}).nombre||d.partido;
+  const marcaGrande = lg
+    ? `<span class="plogo-xl"><img src="${lg}" alt="${d.partido}"></span>`
+    : `<span class="pdot-xl" style="background:${pc}">${d.partido}</span>`;
+  return `<div class="th">
+      ${d.foto?`<img src="${d.foto}">`:''}
+      <div class="thmeta"><div class="nombre">${d.nombre}</div><div class="cargo">${d.cargo}</div></div>
+      ${marcaGrande}
+    </div>
+    <div class="filas">
+      <div class="fila"><span class="kk">Partido</span><span class="vv">${pn}</span></div>
+      <div class="fila"><span class="kk">Retribución anual</span><span class="vv">${fmtEur(d.salario)}</span></div>
+      <div class="fila"><span class="kk">Patrimonio total</span><span class="vv">${fmtEur(d.patrimonio)}</span></div>
+    </div>`;
+}
+function mostrarTT(ev,d){ TT.html(tooltipHTML(d)).style('opacity',1); moverTT(ev); }
+function moverTT(ev){
+  const w=TT.node().offsetWidth, h=TT.node().offsetHeight;
+  let x=ev.clientX+16, y=ev.clientY+16;
+  if(x+w>window.innerWidth-8) x=ev.clientX-w-16;
+  if(y+h>window.innerHeight-8) y=ev.clientY-h-16;
+  TT.style('left',x+'px').style('top',y+'px');
+}
+const ocultarTT = ()=>TT.style('opacity',0);
+
+/* ---------- Utilidad: partir nombre en <=2 líneas ---------- */
+function dividirNombre(nombre,maxLen){
+  const pal=nombre.split(' '); const out=[]; let cur='';
+  for(const p of pal){ if((cur+' '+p).trim().length<=maxLen){cur=(cur+' '+p).trim();} else {if(cur)out.push(cur);cur=p;} }
+  if(cur)out.push(cur);
+  if(out.length>2){ out[1]=out.slice(1).join(' '); out.length=2; }
+  if(out[1]&&out[1].length>maxLen) out[1]=out[1].slice(0,maxLen-1)+'…';
+  return out;
+}
+
+/* ---------- 3. ORGANIGRAMA ---------- */
+function renderOrg(){
+  const svg = d3.select('#svgOrg');
+  const W = Math.max(320, anchoDe(document.querySelector('.panel'), 1120) - 12);
+  svg.selectAll('*').remove();
+
+  const pres = DATOS.find(d=>d.nivel===0);
+  const vp   = DATOS.find(d=>d.nivel===1);
+  const cons = DATOS.filter(d=>d.nivel===2);            // ya vienen ordenados por salario
+
+  const R  = Math.max(30, Math.min(42, W/17));
+  const Rp = R*1.16;
+  const sidePad = Math.max(22, R*0.7);
+  const usable = W - 2*sidePad;
+
+  // columnas: cada "hueco" debe ser >= SLOT_MIN para que las etiquetas no se solapen.
+  const SLOT_MIN = 164;
+  let cols = Math.max(2, Math.min(6, Math.floor(usable / SLOT_MIN)));
+  // filas balanceadas (11 -> 6+5, no una fila llena y una casi vacía)
+  const nRows  = Math.ceil(cons.length / cols);
+  const perRow = Math.ceil(cons.length / nRows);
+  const filas  = [];
+  for(let i=0;i<cons.length;i+=perRow) filas.push(cons.slice(i, i+perRow));
+
+  // reservas verticales de etiqueta
+  const nameLH = 14, deptoLH = 13, gapLabel = 16;
+  const labelBlock = gapLabel + 2*nameLH + 3 + 2*deptoLH;   // consejeros: reserva 2 nombre + 2 depto
+  // altura REAL de la etiqueta de Presidencia/Vicepresidencia, para dejar el hueco JUSTO
+  // por donde baja la línea de jerarquía (así la línea no pisa el nombre ni el departamento).
+  const bloque = (nom,dep)=> gapLabel + nom.length*nameLH + 3 + dep.length*deptoLH;
+  const presNom=dividirNombre(pres.nombre,24), presDep=dividirNombre(pres.departamento,26);
+  const vpNom =dividirNombre(vp.nombre,24),    vpDep =dividirNombre(vp.departamento,26);
+  const gapCon = 40;   // hueco vertical reservado para la línea de jerarquía
+
+  const topPad = 32;
+  const yPres = topPad + Rp;
+  const presLabelBot = yPres + Rp + bloque(presNom,presDep);
+  const vpTagY = presLabelBot + gapCon;                    // tag "VICEPRESIDENCIA"
+  const yVP = vpTagY + 14 + R;
+  const vpLabelBot = yVP + R + bloque(vpNom,vpDep);
+  const yBus = vpLabelBot + gapCon;
+  const rowStep = 2*R + labelBlock + 24;
+  const yRow0 = yBus + 32 + R;
+  const H = yRow0 + (filas.length-1)*rowStep + R + labelBlock + 18;
+
+  svg.attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height',H);
+  const defs = svg.append('defs');
+  const gLinks = svg.append('g');
+  const gNodes = svg.append('g');
+
+  // posiciones: cada fila se reparte UNIFORMEMENTE en el ancho disponible
+  filas.forEach((fila,r)=>{
+    const yy = yRow0 + r*rowStep, k = fila.length;
+    fila.forEach((d,i)=>{ d._x = sidePad + usable*((i+0.5)/k); d._y = yy; d._r = R; d._slot = usable/k; });
+  });
+  pres._x=W/2; pres._y=yPres; pres._r=Rp; pres._slot=usable;
+  vp._x=W/2;   vp._y=yVP;     vp._r=R;   vp._slot=usable;
+
+  // líneas de jerarquía: viven en el HUECO entre bloques (debajo de cada etiqueta),
+  // por lo que NO pisan el nombre ni el departamento.
+  const cx = W/2;
+  gLinks.append('path').attr('class','conector').attr('d',`M${cx},${presLabelBot+7} L${cx},${vpTagY-14}`);
+  gLinks.append('path').attr('class','conector').attr('d',`M${cx},${vpLabelBot+7} L${cx},${yBus}`);
+  const fila0 = filas[0] || [];
+  if(fila0.length){
+    const x0=Math.min(fila0[0]._x, cx), x1=Math.max(fila0[fila0.length-1]._x, cx);
+    gLinks.append('path').attr('class','conector').attr('d',`M${x0},${yBus} L${x1},${yBus}`);
+    fila0.forEach(d=>gLinks.append('path').attr('class','conector').attr('d',`M${d._x},${yBus} L${d._x},${d._y-R}`));
+  }
+
+  const todos = [pres, vp, ...cons];
+  const nodo = gNodes.selectAll('g.nodo').data(todos,d=>d.ou).join('g')
+    .attr('class','nodo').attr('transform',d=>`translate(${d._x},${d._y})`)
+    .classed('sel',d=>d.ou===seleccion)
+    .on('mouseenter',mostrarTT).on('mousemove',moverTT).on('mouseleave',ocultarTT)
+    .on('click',(ev,d)=>seleccionar(d));
+
+  // halo de selección + foto + aro partido + etiquetas
+  nodo.each(function(d){
+    const g=d3.select(this), r=d._r, pc=colorPartido(d.partido);
+    g.append('circle').attr('class','halo').attr('r',r+7).attr('fill','none')
+      .attr('stroke',pc).attr('stroke-width',2).attr('stroke-dasharray','3 4');
+    const cid=`c-${d.ou}`;
+    defs.append('clipPath').attr('id',cid).append('circle').attr('r',r);
+    if(d.foto){
+      g.append('image').attr('href',d.foto).attr('x',-r).attr('y',-r)
+        .attr('width',2*r).attr('height',2*r).attr('clip-path',`url(#${cid})`)
+        .attr('preserveAspectRatio','xMidYMid slice');
+    } else {
+      g.append('circle').attr('r',r).attr('fill','#EEF3F6');
+      g.append('text').attr('text-anchor','middle').attr('dy','.35em')
+        .attr('font-family','Space Grotesk').attr('font-weight',700)
+        .attr('font-size',r*.7).attr('fill','#6B8CA5').text(iniciales(d.nombre));
+    }
+    g.append('circle').attr('class','aro').attr('r',r).attr('fill','none')
+      .attr('stroke',pc).attr('stroke-width',d.nivel<2?5:4);
+
+    // logo del partido, badge abajo-derecha de la burbuja (AHI no tiene logo -> punto de color)
+    const lg=logoPartido(d.partido), lbR=Math.max(9, r*0.42), lbC=r*0.70;
+    g.append('circle').attr('cx',lbC).attr('cy',lbC).attr('r',lbR).attr('fill','#fff')
+      .attr('stroke','rgba(13,27,42,.14)').attr('stroke-width',1);
+    if(lg){
+      const s=lbR*1.5;
+      g.append('image').attr('href',lg).attr('x',lbC-s/2).attr('y',lbC-s/2).attr('width',s).attr('height',s)
+        .attr('preserveAspectRatio','xMidYMid meet');
+    } else {
+      g.append('circle').attr('cx',lbC).attr('cy',lbC).attr('r',lbR*0.55).attr('fill',pc);
+    }
+
+    if(d.nivel===0) g.append('text').attr('class','nodo-tag').attr('y',-r-12).text('Presidencia');
+    if(d.nivel===1) g.append('text').attr('class','nodo-tag').attr('y',-r-12).text('Vicepresidencia');
+
+    // nombre (<=2 líneas), ancho de corte según el hueco de la burbuja
+    const maxNom = d.nivel<2 ? 24 : Math.max(13, Math.floor(d._slot/8));
+    const nm = dividirNombre(d.nombre, maxNom);
+    const tN = g.append('text').attr('class','nodo-nombre').attr('y',r+gapLabel);
+    nm.forEach((ln,i)=>tN.append('tspan').attr('x',0).attr('dy',i?nameLH:0).text(ln));
+    // departamento (<=2 líneas)
+    const maxDep = d.nivel<2 ? 26 : Math.max(14, Math.floor(d._slot/6.3));
+    const dp = dividirNombre(d.departamento, maxDep);
+    const tD = g.append('text').attr('class','nodo-depto').attr('y',r+gapLabel + nm.length*nameLH + 3);
+    dp.forEach((ln,i)=>tD.append('tspan').attr('x',0).attr('dy',i?deptoLH:0).text(ln));
+  });
+}
+
+/* ---------- 4. GRÁFICO DE SALARIOS ----------
+   Estética alineada con la de "Altos cargos": burbuja-foto con aro del color del
+   partido en el margen izquierdo, nombre + cargo, barra redondeada y valor en el
+   color del partido. */
+function renderSalarios(){
+  const svg=d3.select('#svgSal');
+  const cont=document.querySelector('.chart-wrap');
+  const W=Math.max(320, anchoDe(cont,1120) - (parseFloat(getComputedStyle(cont).paddingLeft)+parseFloat(getComputedStyle(cont).paddingRight)));
+  svg.selectAll('*').remove();
+
+  const data=DATOS.filter(d=>d.salario!=null).sort((a,b)=>b.salario-a.salario).slice(0,10);
+  const mL=Math.min(230, Math.max(168, W*0.30)), mR=70, mT=6, mB=28;
+  const rowH=Math.max(46, Math.min(58, W<560?46:54));
+  const H=mT+mB+data.length*rowH;
+  svg.attr('viewBox',`0 0 ${W} ${H}`).attr('width','100%').attr('height',H);
+  const defs=svg.append('defs');
+
+  const x=d3.scaleLinear().domain([0,d3.max(data,d=>d.salario)*1.02]).range([mL, W-mR]);
+  const y=d3.scaleBand().domain(data.map(d=>d.ou)).range([mT, mT+data.length*rowH]).padding(0.30);
+  const bh=y.bandwidth();
+
+  // gridlines + eje
+  const g=svg.append('g');
+  x.ticks(4).forEach(t=>{
+    g.append('line').attr('class','gridline').attr('x1',x(t)).attr('x2',x(t)).attr('y1',mT).attr('y2',mT+data.length*rowH);
+    g.append('text').attr('class','axis-lab').attr('x',x(t)).attr('y',H-9).attr('text-anchor','middle')
+      .text(new Intl.NumberFormat('es-ES',{notation:'compact',maximumFractionDigits:1}).format(t)+' €');
+  });
+
+  const row=svg.selectAll('g.bar-g').data(data,d=>d.ou).join('g').attr('class','bar-g')
+    .classed('activa',d=>d.ou===seleccion)
+    .on('mouseenter',mostrarTT).on('mousemove',moverTT).on('mouseleave',ocultarTT)
+    .on('click',(ev,d)=>seleccionar(d));
+
+  // ---- burbuja-foto con aro del partido en el margen izquierdo ----
+  const rBub=Math.min(21, bh/2);
+  const gutRank=22, cxBub=gutRank+rBub+2;   // hueco para el nº de ranking (junto al eje) + burbuja desplazada
+  const textoSobre=hex=>{const c=hex.replace('#','');const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16);return (0.299*r+0.587*g+0.114*b)/255>0.6?'#0D1B2A':'#fff';};
+  // posición con empates (ranking de competición estándar): mismo salario => misma posición, la siguiente salta
+  const _rank=[]; let _prev=null;
+  data.forEach((dd,k)=>{ const v=Math.round(dd.salario); _rank[k]=(k>0&&v===_prev)?_rank[k-1]:k+1; _prev=v; });
+  row.each(function(d,i){
+    const gr=d3.select(this), cy=y(d.ou)+bh/2, cx=cxBub, pc=colorPartido(d.partido);
+    // nº de ranking junto al eje, en color del partido (1 = quien más cobra; empates comparten posición)
+    const rcR=Math.min(10.5, bh*0.32), rcX=12;
+    gr.append('circle').attr('cx',rcX).attr('cy',cy).attr('r',rcR).attr('fill',pc)
+      .attr('stroke','rgba(13,27,42,.12)').attr('stroke-width',1);
+    gr.append('text').attr('x',rcX).attr('y',cy).attr('text-anchor','middle').attr('dominant-baseline','central')
+      .attr('font-family','Space Grotesk').attr('font-weight',700).attr('font-size',rcR*0.95).attr('fill',textoSobre(pc)).text(_rank[i]);
+    // foto-burbuja con aro del partido
+    if(d.foto){
+      const cid=`bs-${d.ou}`;
+      defs.append('clipPath').attr('id',cid).append('circle').attr('cx',cx).attr('cy',cy).attr('r',rBub-3);
+      gr.append('image').attr('href',d.foto).attr('x',cx-(rBub-3)).attr('y',cy-(rBub-3))
+        .attr('width',2*(rBub-3)).attr('height',2*(rBub-3)).attr('clip-path',`url(#${cid})`)
+        .attr('preserveAspectRatio','xMidYMid slice');
+    } else {
+      gr.append('circle').attr('cx',cx).attr('cy',cy).attr('r',rBub-3).attr('fill','#EEF3F6');
+      gr.append('text').attr('x',cx).attr('y',cy).attr('text-anchor','middle').attr('dominant-baseline','central')
+        .attr('font-family','Space Grotesk').attr('font-weight',700).attr('font-size',rBub*.62).attr('fill','#6B8CA5').text(iniciales(d.nombre));
+    }
+    gr.append('circle').attr('cx',cx).attr('cy',cy).attr('r',rBub).attr('fill','none').attr('stroke',pc).attr('stroke-width',3);
+  });
+
+  // ---- nombre + cargo ----
+  const xText=cxBub+rBub+12;
+  row.append('text').attr('class','bar-name').attr('x',xText).attr('y',d=>y(d.ou)+bh/2-4)
+    .text(d=>{const n=d.nombre.split(' '); return n.length>2?`${n[0]} ${n[n.length-2]} ${n[n.length-1]}`:d.nombre;})
+    .each(function(){const max=mL-xText-8; let t=d3.select(this);
+      while(this.getComputedTextLength()>max&&t.text().length>4){t.text(t.text().slice(0,-2)+'…');}});
+  row.append('text').attr('class','bar-sub').attr('x',xText).attr('y',d=>y(d.ou)+bh/2+11)
+    .text(d=>{const c=d.cargo||'';return c.length>34?c.slice(0,33)+'…':c;});
+
+  // ---- barra coloreada por partido ----
+  const bar=row.append('rect').attr('class','bar').attr('x',mL).attr('y',d=>y(d.ou)).attr('height',bh)
+    .attr('rx',8).attr('fill',d=>colorPartido(d.partido))
+    .attr('stroke',d=>d.ou===seleccion?'#0D1B2A':'none').attr('stroke-width',2.5)
+    .attr('width',d=>Math.max(0,x(d.salario)-mL));
+  if(!document.hidden){
+    bar.attr('width',0).transition().duration(680).delay((d,i)=>i*45).attr('width',d=>Math.max(0,x(d.salario)-mL));
+  }
+
+  // ---- valor al final (color del partido) ----
+  const lab=row.append('text').attr('class','bar-val').attr('y',d=>y(d.ou)+bh/2)
+    .attr('dominant-baseline','central').attr('fill',d=>colorPartido(d.partido))
+    .text(d=>fmtEur(d.salario))
+    .attr('x',d=>x(d.salario)+9).attr('opacity',1);
+  if(!document.hidden){
+    lab.attr('x',mL+4).attr('opacity',0).transition().duration(680).delay((d,i)=>i*45+260)
+       .attr('x',d=>x(d.salario)+9).attr('opacity',1);
+  }
+}
+
+/* ---------- init + resize ---------- */
+function renderAll(){ renderOrg(); renderSalarios(); }
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(renderAll,180);});
+
+/* ---------- datos desde Supabase (schema cargos_publicos) ---------- */
+const SB_URL = 'https://kdpsjutsgvghdtzoskkg.supabase.co/rest/v1';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkcHNqdXRzZ3ZnaGR0em9za2tnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxOTE3MzEsImV4cCI6MjA4MDc2NzczMX0.1W2H42tPmOSvVWPd65jS3m13k_M3gH_X1ifysTKppPo';
+const SB_HEADERS = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Accept-Profile': 'cargos_publicos' };
+// Consejo de Gobierno = 13 ou (Presidencia, Vicepresidencia y 11 consejerías titulares).
+const CONSEJO_OU = ['42091','7251','42084','6547','42123','42143','42136','42159','42165','42086','42150','42118','42114'];
+
+function arrancar(){
+  const url = SB_URL + '/cp_altos_cargos_viz?select=*&ou=in.(' + CONSEJO_OU.join(',') + ')';
+  fetch(url, { headers: SB_HEADERS })
+    .then(r => r.json())
+    .then(rows => {
+      DATOS = rows.map(d => ({
+        ou: d.ou, nombre: d.nombre, cargo: d.cargo, area: d.area,
+        departamento: (+d.rango === 1 ? 'Vicepresidencia · Economía' : d.area_corta),
+        partido: d.sigla, nivel: +d.rango, salario: d.salario, patrimonio: d.patrimonio,
+        estado_declaracion: d.estado, fecha_posesion: d.fecha_posesion,
+        trayectoria: d.trayectoria || [], meritos: d.meritos || [],
+        foto: d.foto_url, url_ficha: d.url_ficha,
+      })).sort((a, b) => a.nivel - b.nivel || (b.salario || 0) - (a.salario || 0));
+      pintarKpis();
+      renderAll();
+    })
+    .catch(e => { console.error('Error cargando datos de Supabase:', e); });
+}
+arrancar();
+</script>
+<script>
+/* Auto-altura cuando se abre incrustado (?embed=1) en el shell de pestañas. */
+(function(){
+  if(!new URLSearchParams(location.search).has('embed')) return;
+  var last=0;
+  function alto(){ return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, document.body.offsetHeight); }
+  function post(){ var h=alto(); if(Math.abs(h-last)<2) return; last=h; parent.postMessage({type:'odesocan-embed-height',height:h},'*'); }
+  var ht=null; function postDeb(){ clearTimeout(ht); ht=setTimeout(post,110); }   // agrupa ráfagas de mutaciones (contadores animados) en un solo aviso de altura
+  window.addEventListener('load', function(){ post(); setTimeout(post,250); setTimeout(post,800); setTimeout(post,1800); });
+  window.addEventListener('resize', postDeb);
+  if(window.ResizeObserver) new ResizeObserver(postDeb).observe(document.body);
+  new MutationObserver(postDeb).observe(document.body,{childList:true,subtree:true,attributes:true});
+  // Puente de scroll: dentro del iframe alto scrollIntoView no desplaza nada; en su lugar
+  // pedimos al shell que lleve la página hasta el elemento (p. ej. la ficha al seleccionar).
+  var _sci = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = function(){
+    try{ var y = this.getBoundingClientRect().top + (window.pageYOffset||0);
+      parent.postMessage({type:'odesocan-embed-scrollto', y:y}, '*'); }
+    catch(e){ try{ _sci.apply(this, arguments); }catch(_){} }
+  };
+})();
+</script>
+</body>
+</html>

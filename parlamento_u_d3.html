@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parlamento de Canarias en U - D3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="d3.v7.min.js"></script>
+  <script src="logos_base64.js"></script>
+  <script src="layout_u.js"></script>
+  <script src="salario_2025.js"></script>
+  <script src="gobierno_2025.js"></script>
+  <style>
+    :root {
+      --fondo: #F5F8FA;
+      --texto: #1A2F45;
+      --gris: #647886;
+      --teal: #00AFA0;
+      --borde: #DCE8EF;
+      --azul: #123A5D;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--fondo);
+      color: var(--texto);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px 24px 24px;
+    }
+    .cabecera {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0;
+      font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+      font-weight: 700;
+      font-size: clamp(26px, 3.1vw, 42px);
+      line-height: 1.08;
+      letter-spacing: -.005em;
+    }
+    h1 em { font-style: normal; color: var(--teal); }
+    .sub {
+      margin: 8px 0 0;
+      color: var(--gris);
+      font-size: 15px;
+      max-width: 720px;
+      line-height: 1.45;
+    }
+    .controles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-start;
+      margin: 0 0 12px;
+    }
+    button {
+      border: 1px solid var(--borde);
+      background: white;
+      color: var(--texto);
+      border-radius: 7px;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 1px 5px rgba(13, 27, 42, .06);
+    }
+    button.activo {
+      background: var(--azul);
+      color: white;
+      border-color: var(--azul);
+    }
+    .panel {
+      position: relative;
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(13, 27, 42, .08);
+      overflow: hidden;
+    }
+    svg {
+      display: block;
+      width: 100%;
+      height: min(76vh, 760px);
+      min-height: 560px;
+    }
+    .guia-u {
+      fill: none;
+      stroke: #E6EEF3;
+      stroke-width: 2;
+    }
+    .areas-partido path { fill-opacity: .17; transition: fill-opacity .15s ease; }
+    .areas-partido path.resaltado { fill-opacity: .34; }
+    .mesa {
+      fill: #E9F4F3;
+      stroke: #B8D9D5;
+      stroke-width: 1.5;
+    }
+    .mesa-texto {
+      fill: #3A6771;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-anchor: middle;
+    }
+    .seat {
+      cursor: pointer;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .seat-base {
+      fill: white;
+      stroke: rgba(13, 27, 42, .16);
+      stroke-width: 1;
+    }
+    .seat-dot {
+      stroke: white;
+      stroke-width: 1.7;
+    }
+    .seat.apagado .seat-dot {
+      fill: #CBD4DA !important;
+      opacity: .38;
+    }
+    .seat.apagado .seat-base { opacity: .26; }
+    .seat:hover .seat-dot {
+      stroke: #0D1B2A;
+      stroke-width: 2.6;
+    }
+    /* KPIs como tres ventanas entre la ficha y el gráfico */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 0 0 14px;
+    }
+    .kpi {
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(13, 27, 42, .06);
+      padding: 14px 16px;
+    }
+    .kpi .k {
+      color: var(--gris);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+    }
+    .kpi .v {
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1.05;
+      margin-top: 5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi .v .v-pct {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--gris);
+      margin-left: 8px;
+      letter-spacing: .02em;
+    }
+    .kpi-sub {
+      color: var(--gris);
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @media (max-width: 680px) { .kpis { grid-template-columns: 1fr; } }
+    .tooltip {
+      position: fixed;
+      z-index: 10;
+      display: none;
+      max-width: 310px;
+      background: rgba(13, 27, 42, .96);
+      color: white;
+      padding: 12px 13px;
+      border-radius: 9px;
+      box-shadow: 0 10px 26px rgba(13,27,42,.30);
+      pointer-events: none;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .tooltip .nombre {
+      font-weight: 900;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    .tooltip .grupo {
+      color: #AEEBE4;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .fuente {
+      margin: 10px 0 0;
+      color: var(--gris);
+      font-size: 13px;
+    }
+    @media (max-width: 760px) {
+      main { padding: 16px 12px; }
+      .cabecera { display: block; }
+      .controles { justify-content: flex-start; margin-top: 12px; }
+      svg { min-height: 500px; }
+    }
+
+    /* --- fotos en las burbujas --- */
+    .seat-foto { pointer-events: none; }
+    .seat-aro { pointer-events: none; }
+    .seat-iniciales { fill: #5A6B77; font-size: 12px; font-weight: 900; text-anchor: middle; pointer-events: none; }
+    .seat.apagado .seat-foto { filter: grayscale(1) contrast(.9); opacity: .30; }
+    .seat.apagado .seat-aro { opacity: .32; }
+    .seat.apagado .seat-base { opacity: .30; }
+    .seat:hover .seat-aro { stroke: #0D1B2A !important; stroke-width: 3.6; }
+    .seat.sin-datos .seat-aro { stroke-dasharray: 3 3; }
+    .seat.sin-datos .seat-base { fill: #EEF3F6; }
+    .seat.seleccionado .seat-aro { stroke: #0D1B2A !important; stroke-width: 4.6; }
+    .bancada-label { font-size: 20px; font-weight: 900; letter-spacing: .12em; fill: #31424C; pointer-events: none; text-anchor: middle; }
+    .bancada-sub { font-size: 12px; font-weight: 800; letter-spacing: .06em; fill: #7C8E9A; pointer-events: none; text-anchor: middle; }
+    /* foto en el tooltip */
+    .tt-head { display: flex; gap: 11px; align-items: center; margin-bottom: 8px; }
+    .tt-foto { width: 54px; height: 70px; object-fit: cover; object-position: center top; border-radius: 7px; flex: none; background: #22384c; border: 1.5px solid rgba(255,255,255,.22); }
+    .tt-foto.vacia { display: flex; align-items: center; justify-content: center; font-weight: 900; color: #AEEBE4; font-size: 18px; }
+    .tt-head .nombre { margin-bottom: 3px; }
+    .tt-datos { display: grid; gap: 2px; }
+    .grupo { display: flex; align-items: center; }
+    .tt-nota { color: #AEEBE4; font-style: italic; margin-top: 2px; }
+    /* marca de "en el Gobierno de Canarias" (incompatibilidad) */
+    .tt-gob { color: #FFD98A; font-weight: 800; margin: 2px 0 6px; }
+    .tt-camara { color: #A8CBEF; font-weight: 800; margin: 2px 0 6px; }
+    .ficha-gob { display: inline-block; margin: 2px 0 12px; font-size: 12.5px; font-weight: 800;
+      color: #0d2c48; background: #E9F4F3; border: 1px solid #B8D9D5; border-radius: 7px; padding: 4px 10px; }
+    .ficha-camara { display: inline-block; margin: 2px 0 12px; font-size: 12.5px; font-weight: 800;
+      color: #123A5D; background: #EAF1F8; border: 1px solid #C6D8EA; border-radius: 7px; padding: 4px 10px; }
+    /* tooltip al pasar sobre el área de un partido */
+    .tt-part { display: flex; align-items: center; gap: 11px; margin-bottom: 8px; }
+    .tt-part-logo { display: block; flex: none; background: #fff; border-radius: 5px; padding: 3px 6px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+    .tt-part .nombre { margin-bottom: 3px; }
+    .tt-part-cifra { color: #AEEBE4; font-weight: 800; }
+    /* logo del partido a la izquierda, bajo la foto, en el tooltip
+       (chip blanco para que las marcas oscuras se vean sobre el fondo oscuro) */
+    .tt-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: none; }
+    .tt-info { flex: 1; min-width: 0; }
+    .tt-logo-side { display: block; object-fit: contain; background: #fff; border-radius: 5px; padding: 3px 5px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+    /* logo del partido a la izquierda, bajo la foto, en la ficha */
+    .ficha-col { display: flex; flex-direction: column; align-items: center; gap: 10px; flex: none; }
+    .ficha-logo { display: block; object-fit: contain; }
+    /* --- cuadro-ficha bajo la figura --- */
+    .ficha { margin: 0 0 14px; background: white; border: 1px solid var(--borde); border-radius: 12px; box-shadow: 0 8px 24px rgba(13,27,42,.06); padding: 16px; }
+    .ficha-vacia { color: var(--gris); font-size: 14px; display: flex; align-items: center; justify-content: center; min-height: 72px; text-align: center; }
+    .ficha-card { display: flex; gap: 16px; position: relative; }
+    .ficha-foto { width: 108px; height: 142px; object-fit: cover; object-position: center top; border-radius: 9px; flex: none; background: #22384c; border: 2px solid var(--borde); }
+    .ficha-foto.vacia { display: flex; align-items: center; justify-content: center; font-weight: 900; color: #647886; font-size: 30px; background: #EEF3F6; }
+    .ficha-body { flex: 1; min-width: 0; }
+    .ficha-nombre { font-size: 21px; font-weight: 900; line-height: 1.1; }
+    .ficha-grupo { font-weight: 800; margin: 3px 0 12px; }
+    .ficha-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px 20px; }
+    .ficha-grid .k { color: var(--gris); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 800; }
+    .ficha-grid .v { font-weight: 900; font-size: 18px; line-height: 1.1; }
+    .ficha-pdf { margin-top: 14px; }
+    .ficha-pdf a { display: inline-flex; align-items: center; gap: 8px; background: var(--azul); color: white; text-decoration: none; padding: 9px 14px; border-radius: 8px; font-weight: 800; font-size: 13px; }
+    .ficha-pdf a:hover { background: #0d2c48; }
+    .ficha-url { display: block; margin-top: 7px; font-size: 11px; color: var(--gris); word-break: break-all; }
+    .ficha-nota { margin-top: 10px; font-size: 13px; color: #9A6B00; background: #FFF6E0; border: 1px solid #F2E2AE; border-radius: 7px; padding: 8px 10px; }
+    @media (max-width: 620px) { .ficha-card { flex-direction: column; } .ficha-foto { width: 96px; height: 126px; } }
+  </style>
+<style>/* modo incrustado en el shell de pestañas */
+  html.embed #ficha:has(.ficha-vacia){display:none;}   /* no mostrar el placeholder vacío: deja ver antes el gráfico */
+</style>
+<script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
+</head>
+<body>
+<main>
+  <div class="cabecera">
+    <div>
+      <h1>Parlamento de Canarias <em>en&nbsp;U</em></h1>
+      <p class="sub">Visualización interactiva de la muestra de declaraciones patrimoniales en una planta 2D del arco parlamentario. Los 70 diputados y diputadas en activo de la XI Legislatura, dispuestos en herradura con las dos bancadas enfrentadas -gobierno y oposición-. Cada burbuja lleva su foto oficial. Pasa el cursor para un resumen y haz clic para abrir su ficha con el enlace a la declaración de bienes.</p>
+    </div>
+  </div>
+  <section class="ficha" id="ficha" aria-live="polite">
+    <div class="ficha-vacia">Haz clic en un diputado o diputada para ver aquí su ficha y el enlace a su declaración de bienes.</div>
+  </section>
+  <section class="kpis" aria-live="polite">
+    <div class="kpi"><div class="k">Parlamentarias en activo</div><div id="stat-total" class="v">0</div></div>
+    <div class="kpi"><div class="k">Con conflicto de intereses</div><div id="stat-muted" class="v">0</div></div>
+    <div class="kpi"><div class="k">Salario anual (2025)</div><div id="stat-salario" class="v">0</div><div id="salario-sub" class="kpi-sub"></div></div>
+  </section>
+  <div class="controles" role="group" aria-label="Modo de visualización">
+    <button class="activo" data-mode="todos">Todos</button>
+    <button data-mode="viviendas">3+ viviendas</button>
+    <button data-mode="inmuebles">3+ inmuebles</button>
+  </div>
+  <section class="panel">
+    <svg id="chart" viewBox="0 0 1180 820" role="img" aria-label="Parlamento de Canarias en forma de U"></svg>
+  </section>
+  <p class="fuente">Fuente: Parlamento de Canarias. Datos extraídos con OCR y revisión visual manual. Se representan los 70 escaños en activo de la XI Legislatura: se excluyen 9 diputados/as que causaron baja (renuncias y pasos al Congreso/Senado, ya sustituidos). La declaración de Marcos A. Bergaz se incorpora desde el PDF patrimonial publicado el 5 de septiembre de 2023. <strong>Patrimonio, deuda, inmuebles y viviendas</strong> proceden de la declaración de bienes (OCR). El <strong>salario anual (2025)</strong> es la retribución parlamentaria reconstruida según la tarifa oficial vigente (base + complemento por cargo); para quienes están en el Gobierno de Canarias se muestra su retribución de alto cargo (fuente: portal de transparencia del Gobierno de Canarias y datos.canarias.es, feb. 2026). Excluye dietas variables.</p>
+</main>
+<div id="tooltip" class="tooltip"></div>
+<script>
+const datos = [{"posicion": 0, "diputado_id": "11062", "nombre": "Alicia Pérez Hernández", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Autonómica", "inmuebles": 0, "viviendas": 0, "patrimonio": 0.0, "patrimonio_fmt": "0 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/062/11062declabienes-1.pdf"}, {"posicion": 1, "diputado_id": "11066", "nombre": "Alicia Vanoostende Simili", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "La Palma", "inmuebles": 15, "viviendas": 10, "patrimonio": 422000.0, "patrimonio_fmt": "422.000 €", "deuda_fmt": "49.682 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/066/11066declabienes-1.pdf"}, {"posicion": 2, "diputado_id": "11060", "nombre": "Elena Máñez Rodríguez", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Gran Canaria", "inmuebles": 0, "viviendas": 0, "patrimonio": 9770.28, "patrimonio_fmt": "9.770 €", "deuda_fmt": "83.152 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/060/11060declabienes-1.pdf"}, {"posicion": 3, "diputado_id": "11068", "nombre": "Gustavo Adolfo Matos Expósito", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Tenerife", "inmuebles": 2, "viviendas": 1, "patrimonio": 86000.0, "patrimonio_fmt": "86.000 €", "deuda_fmt": "197.464 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/068/11068declabienes-1.pdf"}, {"posicion": 4, "diputado_id": "11065", "nombre": "Gustavo Adolfo Santana Martel", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Gran Canaria", "inmuebles": 2, "viviendas": 2, "patrimonio": 16561.0, "patrimonio_fmt": "16.561 €", "deuda_fmt": "304.665 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/065/11065declabienes-1.pdf"}, {"posicion": 5, "diputado_id": "11052", "nombre": "Jorge Tomás González Cabrera", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Autonómica", "inmuebles": 2, "viviendas": 1, "patrimonio": 15000.0, "patrimonio_fmt": "15.000 €", "deuda_fmt": "60.260 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/052/11052declabienes-1.pdf"}, {"posicion": 6, "diputado_id": "11049", "nombre": "Lucía Fuentes Mesa", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "El Hierro", "inmuebles": 0, "viviendas": 0, "patrimonio": 35000.0, "patrimonio_fmt": "35.000 €", "deuda_fmt": "56.270 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/049/11049declabienes-1.pdf"}, {"posicion": 7, "diputado_id": "11069", "nombre": "Lucía Olga Tejera Rodríguez", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Lanzarote", "inmuebles": 3, "viviendas": 3, "patrimonio": 20680.2, "patrimonio_fmt": "20.680 €", "deuda_fmt": "0 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/069/11069declabienes-1.pdf"}, {"posicion": 8, "diputado_id": "11050", "nombre": "Manuel Fumero García", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Tenerife", "inmuebles": 4, "viviendas": 0, "patrimonio": 234588.92, "patrimonio_fmt": "234.589 €", "deuda_fmt": "89.544 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/050/11050declabienes-4.pdf"}, {"posicion": 9, "diputado_id": "11053", "nombre": "Manuel Hernández Cerezo", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Fuerteventura", "inmuebles": 3, "viviendas": 0, "patrimonio": 11023.0, "patrimonio_fmt": "11.023 €", "deuda_fmt": "236.649 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/053/11053declabienes-1.pdf"}, {"posicion": 10, "diputado_id": "11043", "nombre": "Manuel Jesús Abrante Brito", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "La Palma", "inmuebles": 0, "viviendas": 0, "patrimonio": 19168.29, "patrimonio_fmt": "19.168 €", "deuda_fmt": "12.103 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/043/11043declabienes-4.pdf"}, {"posicion": 11, "diputado_id": "11063", "nombre": "Manuel Ramón Plasencia Barroso", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "La Gomera", "inmuebles": 3, "viviendas": 2, "patrimonio": 45300.0, "patrimonio_fmt": "45.300 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/063/11063declabienes-1.pdf"}, {"posicion": 12, "diputado_id": "11054", "nombre": "Marcos Francisco Hernández Guillén", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Lanzarote", "inmuebles": 2, "viviendas": 1, "patrimonio": 9230.0, "patrimonio_fmt": "9.230 €", "deuda_fmt": "153.735 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/054/11054declabienes-1.pdf"}, {"posicion": 14, "diputado_id": "11064", "nombre": "María Tamara Raya Rodríguez", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Tenerife", "inmuebles": 1, "viviendas": 0, "patrimonio": 29746.34, "patrimonio_fmt": "29.746 €", "deuda_fmt": "97.880 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/064/11064declabienes-1.pdf"}, {"posicion": 15, "diputado_id": "11070", "nombre": "Miguel Ángel Pérez del Pino", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Gran Canaria", "inmuebles": 0, "viviendas": 0, "patrimonio": 7049.85, "patrimonio_fmt": "7.050 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/070/11070declabienes-3.pdf"}, {"posicion": 16, "diputado_id": "11044", "nombre": "Nayra Alemán Ojeda", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Gran Canaria", "inmuebles": 0, "viviendas": 0, "patrimonio": 23084.81, "patrimonio_fmt": "23.085 €", "deuda_fmt": "22.000 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/044/11044declabienes-3.pdf"}, {"posicion": 17, "diputado_id": "11047", "nombre": "Nira Fierro Díaz", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Tenerife", "inmuebles": 0, "viviendas": 0, "patrimonio": 16452.0, "patrimonio_fmt": "16.452 €", "deuda_fmt": "4.666 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/047/11047declabienes-1.pdf"}, {"posicion": 18, "diputado_id": "11055", "nombre": "Patricia Hernández Gutiérrez", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Tenerife", "inmuebles": 3, "viviendas": 2, "patrimonio": 4200.0, "patrimonio_fmt": "4.200 €", "deuda_fmt": "239.254 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/055/11055declabienes-1.pdf"}, {"posicion": 19, "diputado_id": "11078", "nombre": "Rafael Nogales Gómara", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Autonómica", "inmuebles": 9, "viviendas": 1, "patrimonio": 330700.0, "patrimonio_fmt": "330.700 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/078/11078declabienes-1.pdf"}, {"posicion": 20, "diputado_id": "11045", "nombre": "Rosa Bella Cabrera Noda", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Fuerteventura", "inmuebles": 0, "viviendas": 0, "patrimonio": 43000.0, "patrimonio_fmt": "43.000 €", "deuda_fmt": "1.133 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/045/11045declabienes-1.pdf"}, {"posicion": 21, "diputado_id": "11048", "nombre": "Sebastián Franquis Vera", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Gran Canaria", "inmuebles": 1, "viviendas": 1, "patrimonio": 232644.65, "patrimonio_fmt": "232.645 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/048/11048declabienes-1.pdf"}, {"posicion": 22, "diputado_id": "11059", "nombre": "Yaiza López Landi", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Autonómica", "inmuebles": 1, "viviendas": 1, "patrimonio": 19800.0, "patrimonio_fmt": "19.800 €", "deuda_fmt": "186.734 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/059/11059declabienes-1.pdf"}, {"posicion": 24, "diputado_id": "11026", "nombre": "Carmen Rosa Hernández Jorge", "grupo": "GP Nueva Canarias-Bloque Canarista (NC-bc)", "sigla": "NC-bc", "color": "#1B5E20", "circunscripcion": "Gran Canaria", "inmuebles": 1, "viviendas": 1, "patrimonio": 0.0, "patrimonio_fmt": "0 €", "deuda_fmt": "267.413 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/026/11026declabienes-1.pdf"}, {"posicion": 25, "diputado_id": "11024", "nombre": "Esther González González", "grupo": "GP Nueva Canarias-Bloque Canarista (NC-bc)", "sigla": "NC-bc", "color": "#1B5E20", "circunscripcion": "Gran Canaria", "inmuebles": 2, "viviendas": 0, "patrimonio": 0.0, "patrimonio_fmt": "0 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/024/11024declabienes-1.pdf"}, {"posicion": 26, "diputado_id": "11023", "nombre": "Luis Alberto Campos Jiménez", "grupo": "GP Nueva Canarias-Bloque Canarista (NC-bc)", "sigla": "NC-bc", "color": "#1B5E20", "circunscripcion": "Gran Canaria", "inmuebles": 0, "viviendas": 0, "patrimonio": 6679.150000000001, "patrimonio_fmt": "6.679 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/023/11023declabienes-1.pdf"}, {"posicion": 27, "diputado_id": "11027", "nombre": "Natalia Esther Santana Santana", "grupo": "GP Nueva Canarias-Bloque Canarista (NC-bc)", "sigla": "NC-bc", "color": "#1B5E20", "circunscripcion": "Fuerteventura", "inmuebles": 1, "viviendas": 0, "patrimonio": 40400.0, "patrimonio_fmt": "40.400 €", "deuda_fmt": "139.154 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/027/11027declabienes-1.pdf"}, {"posicion": 28, "diputado_id": "11025", "nombre": "Yone Xarach Caraballo Medina", "grupo": "GP Nueva Canarias-Bloque Canarista (NC-bc)", "sigla": "NC-bc", "color": "#1B5E20", "circunscripcion": "Lanzarote", "inmuebles": 1, "viviendas": 1, "patrimonio": 360.0, "patrimonio_fmt": "360 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/025/11025declabienes-1.pdf"}, {"posicion": 29, "diputado_id": "11001", "nombre": "Casimiro Curbelo Curbelo", "grupo": "GP Agrupación Socialista Gomera (ASG)", "sigla": "ASG", "color": "#7B1E2B", "circunscripcion": "La Gomera", "inmuebles": 10, "viviendas": 4, "patrimonio": 126649.75, "patrimonio_fmt": "126.650 €", "deuda_fmt": "0 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/001/11001declabienes-1.pdf"}, {"posicion": 30, "diputado_id": "11003", "nombre": "Jesús Ramón Ramos Chinea", "grupo": "GP Agrupación Socialista Gomera (ASG)", "sigla": "ASG", "color": "#7B1E2B", "circunscripcion": "La Gomera", "inmuebles": 1, "viviendas": 1, "patrimonio": 21503.12, "patrimonio_fmt": "21.503 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/003/11003declabienes-1.pdf"}, {"posicion": 31, "diputado_id": "11002", "nombre": "Melodie Mendoza Rodríguez", "grupo": "GP Agrupación Socialista Gomera (ASG)", "sigla": "ASG", "color": "#7B1E2B", "circunscripcion": "La Gomera", "inmuebles": 0, "viviendas": 0, "patrimonio": 17342.0, "patrimonio_fmt": "17.342 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/002/11002declabienes-1.pdf"}, {"posicion": 32, "diputado_id": "11017", "nombre": "Ana M.ª Oramas González-Moro", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Tenerife", "inmuebles": 11, "viviendas": 3, "patrimonio": 34595.57, "patrimonio_fmt": "34.596 €", "deuda_fmt": "0 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/017/11017declabienes-1.pdf"}, {"posicion": 33, "diputado_id": "11071", "nombre": "Cristina Calero García", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Lanzarote", "inmuebles": 0, "viviendas": 0, "patrimonio": 7289.0, "patrimonio_fmt": "7.289 €", "deuda_fmt": "18.779 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/071/11071declabienes-1.pdf"}, {"posicion": 35, "diputado_id": "11021", "nombre": "David Jesús Toledo Niz", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Lanzarote", "inmuebles": 1, "viviendas": 0, "patrimonio": 3000.0, "patrimonio_fmt": "3.000 €", "deuda_fmt": "60.900 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/021/11021declabienes-1.pdf"}, {"posicion": 36, "diputado_id": "11014", "nombre": "Diana Lorenzo Brito", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "La Palma", "inmuebles": 2, "viviendas": 0, "patrimonio": 3445.43, "patrimonio_fmt": "3.445 €", "deuda_fmt": "72.610 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/014/11014declabienes-1.pdf"}, {"posicion": 37, "diputado_id": "11009", "nombre": "Fernando Clavijo Batlle", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Autonómica", "inmuebles": 4, "viviendas": 2, "patrimonio": 15000.0, "patrimonio_fmt": "15.000 €", "deuda_fmt": "271.193 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/009/11009declabienes-1.pdf"}, {"posicion": 38, "diputado_id": "11013", "nombre": "Francisco Linares García", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Tenerife", "inmuebles": 1, "viviendas": 0, "patrimonio": 284000.0, "patrimonio_fmt": "284.000 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/013/11013declabienes-1.pdf"}, {"posicion": 39, "diputado_id": "11012", "nombre": "Jana María González Alonso", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Fuerteventura", "inmuebles": 0, "viviendas": 0, "patrimonio": 60951.22, "patrimonio_fmt": "60.951 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/012/11012declabienes-1.pdf"}, {"posicion": 40, "diputado_id": "11010", "nombre": "Jonathan de Felipe Lorenzo", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "La Palma", "inmuebles": 0, "viviendas": 0, "patrimonio": 127550.0, "patrimonio_fmt": "127.550 €", "deuda_fmt": "26.607 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/010/11010declabienes-1.pdf"}, {"posicion": 41, "diputado_id": "11074", "nombre": "José Alberto Díaz-Estébanez León", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Tenerife", "inmuebles": 6, "viviendas": 3, "patrimonio": 28000.0, "patrimonio_fmt": "28.000 €", "deuda_fmt": "34.000 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/074/11074declabienes-1.pdf"}, {"posicion": 42, "diputado_id": "11018", "nombre": "José Javier Pérez Llamas", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "La Palma", "inmuebles": 4, "viviendas": 2, "patrimonio": 40034.0, "patrimonio_fmt": "40.034 €", "deuda_fmt": "412.249 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/018/11018declabienes-1.pdf"}, {"posicion": 43, "diputado_id": "11007", "nombre": "José Manuel Bermúdez Esparza", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Tenerife", "inmuebles": 2, "viviendas": 0, "patrimonio": 187239.32, "patrimonio_fmt": "187.239 €", "deuda_fmt": "130.865 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/007/11007declabienes-2.pdf"}, {"posicion": 44, "diputado_id": "11004", "nombre": "José Miguel Barragán Cabrera", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Autonómica", "inmuebles": 0, "viviendas": 0, "patrimonio": 28135.17, "patrimonio_fmt": "28.135 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/004/11004declabienes-4.pdf"}, {"posicion": 45, "diputado_id": "11008", "nombre": "Mario Cabrera González", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Fuerteventura", "inmuebles": 5, "viviendas": 5, "patrimonio": 0.0, "patrimonio_fmt": "0 €", "deuda_fmt": "28.596 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/008/11008declabienes-1.pdf"}, {"posicion": 47, "diputado_id": "11016", "nombre": "Miguel Yonathan Martín Fumero", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Tenerife", "inmuebles": 1, "viviendas": 1, "patrimonio": 3556.36, "patrimonio_fmt": "3.556 €", "deuda_fmt": "115.030 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/016/11016declabienes-1.pdf"}, {"posicion": 48, "diputado_id": "11011", "nombre": "Natalia del Carmen Évora Soto", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Fuerteventura", "inmuebles": 2, "viviendas": 1, "patrimonio": 62600.06, "patrimonio_fmt": "62.600 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/011/11011declabienes-1.pdf"}, {"posicion": 49, "diputado_id": "11005", "nombre": "Nieves Lady Barreto Hernández", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "La Palma", "inmuebles": 5, "viviendas": 1, "patrimonio": 18274.0, "patrimonio_fmt": "18.274 €", "deuda_fmt": "145.601 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/005/11005declabienes-3.pdf"}, {"posicion": 50, "diputado_id": "11073", "nombre": "Oswaldo Betancort García", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Lanzarote", "inmuebles": 2, "viviendas": 2, "patrimonio": 0.0, "patrimonio_fmt": "0 €", "deuda_fmt": "337.559 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/073/11073declabienes-2.pdf"}, {"posicion": 53, "diputado_id": "11006", "nombre": "Socorro Beato Castellano", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Tenerife", "inmuebles": 6, "viviendas": 2, "patrimonio": 80483.59000000001, "patrimonio_fmt": "80.484 €", "deuda_fmt": "264.084 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/006/11006declabienes-3.pdf"}, {"posicion": 54, "diputado_id": "11072", "nombre": "Vidina Espino Ramírez", "grupo": "GP Nacionalista Canario (CCa)", "sigla": "CC", "color": "#F2C230", "circunscripcion": "Gran Canaria", "inmuebles": 1, "viviendas": 1, "patrimonio": 39439.0, "patrimonio_fmt": "39.439 €", "deuda_fmt": "109.576 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/072/11072declabienes-1.pdf"}, {"posicion": 55, "diputado_id": "11051", "nombre": "Raúl Acosta Armas", "grupo": "GP Mixto", "sigla": "Mixto", "color": "#6F7B82", "circunscripcion": "El Hierro", "inmuebles": 2, "viviendas": 0, "patrimonio": 33939.13, "patrimonio_fmt": "33.939 €", "deuda_fmt": "701 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/051/11051declabienes-3.pdf"}, {"posicion": 56, "diputado_id": "11035", "nombre": "Astrid María Pérez Batista", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Lanzarote", "inmuebles": 2, "viviendas": 1, "patrimonio": 12789.37, "patrimonio_fmt": "12.789 €", "deuda_fmt": "117.299 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/035/11035declabienes-1.pdf"}, {"posicion": 57, "diputado_id": "11031", "nombre": "Carlos Antonio Ester Sánchez", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Gran Canaria", "inmuebles": 6, "viviendas": 2, "patrimonio": 1660.75, "patrimonio_fmt": "1.661 €", "deuda_fmt": "188.069 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/031/11031declabienes-1.pdf"}, {"posicion": 58, "diputado_id": "11079", "nombre": "David Morales Déniz", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Gran Canaria", "inmuebles": 1, "viviendas": 0, "patrimonio": 146904.15, "patrimonio_fmt": "146.904 €", "deuda_fmt": "85.800 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/079/11079declabienes-1.pdf"}, {"posicion": 59, "diputado_id": "11030", "nombre": "Fernando Enseñat Bueno", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Fuerteventura", "inmuebles": 8, "viviendas": 4, "patrimonio": 179659.63, "patrimonio_fmt": "179.660 €", "deuda_fmt": "251.324 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/030/11030declabienes-1.pdf"}, {"posicion": 60, "diputado_id": "11037", "nombre": "Jacob Anis Qadri Hijazo", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "La Palma", "inmuebles": 3, "viviendas": 3, "patrimonio": 12345.0, "patrimonio_fmt": "12.345 €", "deuda_fmt": "108.783 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/037/11037declabienes-1.pdf"}, {"posicion": 61, "diputado_id": "11077", "nombre": "Jennifer María Curbelo Trujillo", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Tenerife", "inmuebles": 8, "viviendas": 0, "patrimonio": 160000.0, "patrimonio_fmt": "160.000 €", "deuda_fmt": "126.396 €", "destaca_viviendas": false, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/077/11077declabienes-1.pdf"}, {"posicion": 62, "diputado_id": "11032", "nombre": "Juan Manuel García Casañas", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "El Hierro", "inmuebles": 2, "viviendas": 1, "patrimonio": 33005.0, "patrimonio_fmt": "33.005 €", "deuda_fmt": "12.900 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/032/11032declabienes-1.pdf"}, {"posicion": 63, "diputado_id": "11038", "nombre": "Luz Reverón González", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Tenerife", "inmuebles": 3, "viviendas": 3, "patrimonio": 88851.79, "patrimonio_fmt": "88.852 €", "deuda_fmt": "98.956 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/038/11038declabienes-1.pdf"}, {"posicion": 64, "diputado_id": "11029", "nombre": "Manuel Domínguez González", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Autonómica", "inmuebles": 2, "viviendas": 2, "patrimonio": 18911.1, "patrimonio_fmt": "18.911 €", "deuda_fmt": "142.794 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/029/11029declabienes-1.pdf"}, {"posicion": 65, "diputado_id": "11039", "nombre": "María Isabel Saavedra Hierro", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Fuerteventura", "inmuebles": 1, "viviendas": 1, "patrimonio": 10240.0, "patrimonio_fmt": "10.240 €", "deuda_fmt": "167.949 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/039/11039declabienes-1.pdf"}, {"posicion": 67, "diputado_id": "11076", "nombre": "Mónica Muñoz Peña", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Autonómica", "inmuebles": 7, "viviendas": 3, "patrimonio": 93993.1, "patrimonio_fmt": "93.993 €", "deuda_fmt": "222.295 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/076/11076declabienes-1.pdf"}, {"posicion": 69, "diputado_id": "11041", "nombre": "Poli Suárez Nuez", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Gran Canaria", "inmuebles": 0, "viviendas": 0, "patrimonio": 9977.58, "patrimonio_fmt": "9.978 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/041/11041declabienes-1.pdf"}, {"posicion": 70, "diputado_id": "11028", "nombre": "Raquel Noemí Díaz y Díaz", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "La Palma", "inmuebles": 4, "viviendas": 3, "patrimonio": 15058.17, "patrimonio_fmt": "15.058 €", "deuda_fmt": "0 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/028/11028declabienes-1.pdf"}, {"posicion": 71, "diputado_id": "11034", "nombre": "Rebeca Sarai Paniagua Navarro", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Tenerife", "inmuebles": 0, "viviendas": 0, "patrimonio": 0.0, "patrimonio_fmt": "0 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/034/11034declabienes-1.pdf"}, {"posicion": 73, "diputado_id": "11033", "nombre": "Sonsoles Martín Jiménez", "grupo": "GP Popular", "sigla": "PP", "color": "#123A5D", "circunscripcion": "Gran Canaria", "inmuebles": 5, "viviendas": 3, "patrimonio": 13795.46, "patrimonio_fmt": "13.795 €", "deuda_fmt": "136.872 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/033/11033declabienes-1.pdf"}, {"posicion": 74, "diputado_id": "11061", "nombre": "Javier Nieto Fernández", "grupo": "GP VOX", "sigla": "VOX", "color": "#76FF03", "circunscripcion": "Gran Canaria", "inmuebles": 2, "viviendas": 0, "patrimonio": 172658.55, "patrimonio_fmt": "172.659 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/061/11061declabienes-1.pdf"}, {"posicion": 75, "diputado_id": "11057", "nombre": "Marta Gómez Gómez", "grupo": "GP VOX", "sigla": "VOX", "color": "#76FF03", "circunscripcion": "Autonómica", "inmuebles": 0, "viviendas": 0, "patrimonio": 539.0, "patrimonio_fmt": "539 €", "deuda_fmt": "0 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/057/11057declabienes-1.pdf"}, {"posicion": 76, "diputado_id": "11056", "nombre": "Nicasio Jesús Galván Sasia", "grupo": "GP VOX", "sigla": "VOX", "color": "#76FF03", "circunscripcion": "Gran Canaria", "inmuebles": 9, "viviendas": 5, "patrimonio": 626850.61, "patrimonio_fmt": "626.851 €", "deuda_fmt": "155.362 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/056/11056declabienes-1.pdf"}, {"posicion": 77, "diputado_id": "11058", "nombre": "Paula Jover Linares", "grupo": "GP VOX", "sigla": "VOX", "color": "#76FF03", "circunscripcion": "Tenerife", "inmuebles": 2, "viviendas": 1, "patrimonio": 28845.91, "patrimonio_fmt": "28.846 €", "deuda_fmt": "163.468 €", "destaca_viviendas": false, "destaca_inmuebles": false, "url_pdf": "https://www.parcan.es/files/diputados/11L/058/11058declabienes-1.pdf"}, {"posicion": 999, "diputado_id": "11075", "nombre": "Marcos Antonio Bergaz Villalba", "grupo": "GP Socialista Canario", "sigla": "PSOE", "color": "#D73027", "circunscripcion": "Lanzarote", "inmuebles": 10, "viviendas": 5, "patrimonio": 147863.45, "patrimonio_fmt": "147.863 €", "deuda_fmt": "59.991 €", "destaca_viviendas": true, "destaca_inmuebles": true, "url_pdf": "https://www.parcan.es/files/diputados/11L/075/11075declabienes-2.pdf"}];
+const resumen = {"todos": {"etiqueta": "Sin conflicto de intereses", "visibles": 70, "apagados": 0}, "viviendas": {"etiqueta": "Sin conflicto de intereses", "visibles": 56, "apagados": 14}, "inmuebles": {"etiqueta": "Sin conflicto de intereses", "visibles": 45, "apagados": 25}};
+// LEGADO (no se usa en el KPI): ingresos declarados 2023 del OCR. El salario ahora viene
+// de SALARIO_2025 (reconstruido) + GOBIERNO (altos cargos). Se conserva la declaración de bienes.
+const INGRESOS = {"11062": 9428, "11066": 70995, "11060": 69504, "11068": 92791, "11065": 68880, "11052": 65302, "11049": 62452, "11069": 88774, "11050": 4344, "11053": 65392, "11043": 51676, "11063": 76292, "11054": 44953, "11064": 56590, "11070": 77367, "11044": 45292, "11047": 46500, "11055": 47246, "11078": 31030, "11045": 47282, "11048": 72296, "11059": 53086, "11026": 51691, "11024": 45704, "11023": 45841, "11027": 44762, "11025": 49637, "11001": 106970, "11003": 73178, "11002": 68004, "11017": 89702, "11071": 0, "11021": 57062, "11014": 26314, "11009": 77746, "11013": 51000, "11012": 51676, "11010": 49446, "11074": 51676, "11018": 0, "11007": 78751, "11004": 63302, "11008": 52848, "11016": 30398, "11011": 40036, "11005": 44123, "11073": 3611, "11006": 50539, "11072": 182143, "11051": 47510, "11035": 70969, "11031": 51676, "11079": 81249, "11030": 70283, "11037": 59103, "11077": 133651, "11032": 49968, "11038": 50427, "11029": 57688, "11039": 65177, "11076": 24397, "11041": 46210, "11028": 57504, "11034": 35040, "11033": 36005, "11061": 31864, "11057": 99501, "11056": 32288, "11058": 75614, "11075": null};
+
+const svg = d3.select("#chart");
+const tooltip = d3.select("#tooltip");
+const ficha = d3.select("#ficha");
+const statTotal = d3.select("#stat-total");
+const statMuted = d3.select("#stat-muted");
+const statSalario = d3.select("#stat-salario");
+let modo = "todos";
+
+// Total del parlamento (denominador de los porcentajes de conflicto de intereses)
+const TOTAL_PARLAMENTO = resumen.todos.visibles;
+
+// Formateadores de cada KPI
+const fmtNum = v => `${v}`;
+const fmtEuros = v => `${Math.round(v).toLocaleString('es-ES')} €`;
+const fmtPct = v => `${v}<span class="v-pct">${Math.round(v / TOTAL_PARLAMENTO * 100)}%</span>`;
+
+// Contador animado: interpola del valor anterior al nuevo con el formateador dado.
+function contador(sel, destino, fmt) {
+  const nodo = sel.node();
+  const desde = nodo.__val || 0;
+  nodo.__val = destino;
+  // sin animación si la pestaña está oculta (requestAnimationFrame pausado): valor final directo
+  if (document.hidden) { nodo.innerHTML = fmt(destino); return; }
+  d3.select(nodo).interrupt().transition().duration(700).ease(d3.easeCubicOut)
+    .tween("num", () => {
+      const i = d3.interpolateNumber(desde, destino);
+      return (t) => { nodo.innerHTML = fmt(Math.round(i(t))); };
+    });
+}
+
+const L = window.LAYOUT;
+// Fotos servidas desde Supabase Storage (bucket publico cargos-publicos).
+// Proxy: FOTOS[diputado_id] -> URL publica, sin cambiar los usos existentes.
+const SB_FOTOS_PARL = 'https://kdpsjutsgvghdtzoskkg.supabase.co/storage/v1/object/public/cargos-publicos/fotos/parlamento/';
+const FOTOS = new Proxy({}, {
+  get: (_, id) => (typeof id === 'string' && /^\d+$/.test(id)) ? SB_FOTOS_PARL + id + '.png' : undefined
+});
+const LOGOS = window.LOGOS || {};
+const R_BASE = 16.5, R_FOTO = 15.4, R_ARO = 16.5;
+const N_GOB = 38, N_OPO = 32;
+
+// Homogeneizar el tamaño VISUAL de los logos: se normaliza por ÁREA, no por alto.
+// Así un logo cuadrado (PP, CC) y uno apaisado (AHI, VOX) ocupan la misma superficie,
+// conservando cada uno su proporción original (sin deformar).
+const LOGO_AR = {};
+Object.keys(LOGOS).forEach(sigla => {
+  const im = new Image();
+  im.onload = () => { LOGO_AR[sigla] = im.naturalWidth / im.naturalHeight; };
+  im.src = LOGOS[sigla];
+});
+function estiloLogo(sigla, lado) {
+  const r = LOGO_AR[sigla] || 1;                              // proporción ancho/alto
+  const w = lado * Math.sqrt(r), h = lado / Math.sqrt(r);     // ancho·alto = lado² (área constante)
+  return `width:${w.toFixed(1)}px;height:${h.toFixed(1)}px`;
+}
+
+function iniciales(nombre) {
+  const w = nombre.split(/\s+/).filter(Boolean);
+  const a = w[0] ? w[0][0] : "";
+  const b = w.length > 1 ? w[w.length - 2][0] : "";
+  return (a + b).toUpperCase();
+}
+
+const SALARIO_2025 = window.SALARIO_2025 || {};
+const GOBIERNO = window.GOBIERNO || {};
+const datosU = datos.map(d => {
+  const p = (L && L.pos[d.diputado_id]) || { x: 590, y: 372, bancada: "" };
+  const gob = GOBIERNO[d.diputado_id];
+  // Salario anual actualizado: si está en el Gobierno, su retribución de alto cargo;
+  // si no, el salario parlamentario reconstruido 2025 (base + complemento por cargo).
+  const salario = gob ? gob.salario_gobierno : (SALARIO_2025[d.diputado_id] ?? null);
+  const cargoGob = gob ? gob.cargo_gobierno : null;
+  return { ...d, x: p.x, y: p.y, bancada: p.bancada, salario, cargoGob };
+});
+
+// guias concentricas
+function arco(rx, ry, a0, a1) {
+  const pts = d3.range(0, 61).map(i => {
+    const a = (a0 + i / 60 * (a1 - a0)) * Math.PI / 180;
+    return [L.cx + rx * Math.cos(a), L.cy + ry * Math.sin(a)];
+  });
+  return d3.line().curve(d3.curveBasis)(pts);
+}
+const guias = svg.append("g");
+L.rings.forEach(([rx, ry]) => {
+  guias.append("path").attr("class", "guia-u").attr("d", arco(rx + 15, ry + 13, 300, 440));
+  guias.append("path").attr("class", "guia-u").attr("d", arco(rx + 15, ry + 13, 460, 600));
+});
+svg.append("path").attr("class", "pasillo").attr("fill", "none")
+  .attr("stroke", "#E1EAF0").attr("stroke-width", 2).attr("stroke-dasharray", "4 6")
+  .attr("d", `M ${L.cx} ${L.mesa.y + L.mesa.h + 6} L ${L.cx} ${L.cy + 150}`);
+
+// banda de bancadas
+const yBanda = 778;
+svg.append("line").attr("x1", L.cx).attr("y1", 724).attr("x2", L.cx).attr("y2", 806).attr("stroke", "#DCE8EF").attr("stroke-width", 1.5);
+svg.append("text").attr("class", "bancada-label").attr("x", L.cx - 280).attr("y", yBanda).text("OPOSICIÓN · " + N_OPO);
+svg.append("text").attr("class", "bancada-sub").attr("x", L.cx - 280).attr("y", yBanda + 22).text("PSOE · NC-bc · VOX");
+svg.append("text").attr("class", "bancada-label").attr("x", L.cx + 280).attr("y", yBanda).text("GOBIERNO · " + N_GOB);
+svg.append("text").attr("class", "bancada-sub").attr("x", L.cx + 280).attr("y", yBanda + 22).text("CC · PP · ASG · Mixto");
+
+// clips de fotos
+const defs = svg.append("defs");
+defs.selectAll("clipPath").data(datosU.filter(d => FOTOS[d.diputado_id])).join("clipPath")
+  .attr("id", d => `clip-${d.diputado_id}`).append("circle").attr("r", R_FOTO);
+
+// áreas por partido: teselado de Voronoi coloreado por grupo y recortado a un entorno
+// de los asientos → fronteras poligonales entre partidos, sin huecos en blanco.
+const delaunay = d3.Delaunay.from(datosU.map(d => [d.x, d.y]));
+const voronoi = delaunay.voronoi([0, 0, 1180, 820]);
+// Recorte = envolvente POLIGONAL de los asientos, dilatada para cubrir las burbujas,
+// con la MESA descontada. Así los partidos limitan en fronteras rectas, sin huecos.
+const cxA = d3.mean(datosU, d => d.x), cyA = d3.mean(datosU, d => d.y);
+const hullA = d3.polygonHull(datosU.map(d => [d.x, d.y])).map(([x, y]) => {
+  const dx = x - cxA, dy = y - cyA, len = Math.hypot(dx, dy) || 1, k = (len + R_ARO + 10) / len;
+  return [cxA + dx * k, cyA + dy * k];
+});
+// recorte a la envolvente (limita también el hover a la zona coloreada, no al lienzo entero)
+const clipA = defs.append("clipPath").attr("id", "clip-areas");
+clipA.append("path").attr("d", d3.line()(hullA) + "Z");
+const areas = svg.append("g").attr("class", "areas-partido").attr("clip-path", "url(#clip-areas)")
+  .selectAll("path").data(datosU).join("path")
+  .attr("d", (d, i) => voronoi.renderCell(i))
+  .attr("fill", d => d.color);
+
+// tooltip de partido al pasar sobre su área: nº de parlamentarios sobre el total, % y logo
+const infoPartido = new Map(Array.from(
+  d3.group(datosU, d => d.grupo),
+  ([grupo, filas]) => {
+    const conIng = filas.filter(f => f.salario != null);
+    return [grupo, {
+      n: filas.length,
+      sigla: filas[0].sigla,
+      color: filas[0].color,
+      nViv: filas.filter(f => f.destaca_viviendas).length,
+      nInm: filas.filter(f => f.destaca_inmuebles).length,
+      patrMedia: d3.mean(filas, f => f.patrimonio),
+      ingMedia: conIng.length ? d3.mean(conIng, f => f.salario) : null,
+    }];
+  }
+));
+const eur = v => v == null ? "s/d" : Math.round(v).toLocaleString("es-ES") + " €";
+areas.style("cursor", "help")
+  .on("mousemove", (event, d) => {
+    areas.classed("resaltado", a => a.grupo === d.grupo);
+    const info = infoPartido.get(d.grupo);
+    const pct = Math.round(info.n / TOTAL_PARLAMENTO * 100);
+    const pctG = x => Math.round(x / info.n * 100);
+    const logo = LOGOS[info.sigla]
+      ? `<img class="tt-part-logo" style="${estiloLogo(info.sigla, 26)}" src="${LOGOS[info.sigla]}" alt="${info.sigla}">` : "";
+    tooltip.style("display", "block")
+      .style("left", `${event.clientX + 16}px`).style("top", `${event.clientY + 16}px`)
+      .html(`<div class="tt-part">${logo}<div><div class="nombre">${d.grupo}</div>
+        <div class="tt-part-cifra">${info.n} de ${TOTAL_PARLAMENTO} parlamentarios · <b>${pct}%</b> del parlamento</div></div></div>
+        <div class="tt-datos">
+          <div><strong>Con 3+ viviendas:</strong> ${info.nViv} · ${pctG(info.nViv)}% del grupo</div>
+          <div><strong>Con 3+ inmuebles:</strong> ${info.nInm} · ${pctG(info.nInm)}% del grupo</div>
+          <div><strong>Patrimonio medio:</strong> ${eur(info.patrMedia)}</div>
+          <div><strong>Salario medio:</strong> ${eur(info.ingMedia)}</div>
+        </div>`);
+  })
+  .on("mouseleave", () => { areas.classed("resaltado", false); tooltip.style("display", "none"); });
+
+// asientos
+const seats = svg.append("g").selectAll(".seat").data(datosU).join("g")
+  .attr("class", d => "seat" + (d.sin_datos ? " sin-datos" : ""))
+  .attr("transform", d => `translate(${d.x},${d.y})`);
+
+seats.append("circle").attr("class", "seat-base").attr("r", R_BASE);
+
+seats.filter(d => FOTOS[d.diputado_id]).append("image").attr("class", "seat-foto")
+  .attr("href", d => FOTOS[d.diputado_id])
+  .attr("x", -R_FOTO).attr("y", -R_FOTO).attr("width", 2 * R_FOTO).attr("height", 2 * R_FOTO)
+  .attr("preserveAspectRatio", "xMidYMid slice")
+  .attr("clip-path", d => `url(#clip-${d.diputado_id})`);
+
+seats.filter(d => !FOTOS[d.diputado_id]).append("text").attr("class", "seat-iniciales")
+  .attr("dy", "0.35em").text(d => iniciales(d.nombre));
+
+seats.append("circle").attr("class", "seat-aro").attr("r", R_ARO)
+  .attr("fill", "none").attr("stroke", d => d.color).attr("stroke-width", 3);
+
+seats.append("title").text(d => `${d.nombre} - ${d.sigla}`);
+
+function apagado(d) {
+  if (modo === "viviendas") return d.destaca_viviendas;
+  if (modo === "inmuebles") return d.destaca_inmuebles;
+  return false;
+}
+// Grupo cuyos salarios suma el contador según el modo:
+//  · todos      → todo el parlamento (total)
+//  · viviendas  → quienes tienen 3+ viviendas (grupo señalado)
+//  · inmuebles  → quienes tienen 3+ inmuebles (grupo señalado)
+function grupoSalario() {
+  if (modo === "viviendas") return datosU.filter(d => d.destaca_viviendas);
+  if (modo === "inmuebles") return datosU.filter(d => d.destaca_inmuebles);
+  return datosU;
+}
+function subFiltro() {
+  return modo === "viviendas" ? "Con 3+ viviendas"
+       : modo === "inmuebles" ? "Con 3+ inmuebles"
+       : "Total del parlamento";
+}
+// Actualiza el KPI de salario con su contador y un subtítulo que aclara a qué se refiere.
+function mostrarSalario(valor, sub) {
+  d3.select("#salario-sub").text(sub);
+  const nodo = statSalario.node();
+  if (valor == null) { d3.select(nodo).interrupt(); nodo.__val = 0; nodo.innerHTML = "s/d"; return; }
+  contador(statSalario, valor, fmtEuros);
+}
+// Devuelve el KPI de salario al agregado del filtro actual (total o grupo señalado).
+function salarioDelFiltro() {
+  mostrarSalario(d3.sum(grupoSalario(), d => d.salario || 0), subFiltro());
+}
+function actualizar(nuevoModo) {
+  modo = nuevoModo;
+  d3.selectAll("button").classed("activo", function() { return this.dataset.mode === modo; });
+  const r = resumen[modo];
+  contador(statMuted, r.apagados, fmtPct);
+  salarioDelFiltro();
+  seats.classed("apagado", d => apagado(d));
+}
+
+// tooltip (hover) - mismo mecanismo, ahora con foto
+seats.on("mousemove", (event, d) => {
+    const foto = FOTOS[d.diputado_id]
+      ? `<img class="tt-foto" src="${FOTOS[d.diputado_id]}" alt="">`
+      : `<div class="tt-foto vacia">${iniciales(d.nombre)}</div>`;
+    const cuerpo = d.sin_datos
+      ? `<div class="tt-nota">Declaración presentada · pendiente de extracción OCR</div>`
+      : `<div><strong>Circunscripción:</strong> ${d.circunscripcion}</div>
+         <div><strong>Inmuebles:</strong> ${d.inmuebles}</div>
+         <div><strong>Viviendas directas:</strong> ${d.viviendas}</div>
+         <div><strong>Patrimonio monetario:</strong> ${d.patrimonio_fmt}</div>
+         <div><strong>Deuda:</strong> ${d.deuda_fmt}</div>`;
+    const logo = LOGOS[d.sigla] ? `<img class="tt-logo-side" style="${estiloLogo(d.sigla, 20)}" src="${LOGOS[d.sigla]}" alt="${d.sigla}">` : "";
+    tooltip.style("display", "block")
+      .style("left", `${event.clientX + 16}px`).style("top", `${event.clientY + 16}px`)
+      .html(`<div class="tt-head"><div class="tt-col">${foto}${logo}</div><div class="tt-info"><div class="nombre">${d.nombre}</div><div class="grupo">${d.grupo}</div></div></div>${CARGO_CAMARA[d.diputado_id] ? `<div class="tt-camara">🏛 ${CARGO_CAMARA[d.diputado_id]}</div>` : ""}${d.cargoGob ? `<div class="tt-gob">🏛 En el Gobierno · ${d.cargoGob}</div>` : ""}<div class="tt-datos">${cuerpo}</div>`);
+  })
+  .on("mouseleave", () => tooltip.style("display", "none"))
+  // clic - ahora rellena el cuadro-ficha (no abre el documento)
+  .on("click", (event, d) => {
+    seats.classed("seleccionado", s => s.diputado_id === d.diputado_id);
+    pintarFicha(d);
+    mostrarSalario(d.salario, d.cargoGob ? `${d.nombre} · en el Gobierno` : d.nombre);
+    // incrustado en el shell: lleva la página a la ficha (scrollIntoView está parcheado
+    // para delegar el scroll en el shell; ver puente de scroll al final del documento).
+    if (document.documentElement.classList.contains('embed')) document.getElementById('ficha').scrollIntoView();
+  });
+
+// Cargos internos de la Cámara (presidencia, etc.), para anotarlos en la ficha por diputado_id.
+const CARGO_CAMARA = {
+  "11035": "Presidenta del Parlamento de Canarias",
+  "11017": "Vicepresidenta primera del Parlamento de Canarias",
+  "11068": "Vicepresidente segundo del Parlamento de Canarias",
+  "11008": "Secretario primero del Parlamento de Canarias",
+  "11055": "Secretaria segunda del Parlamento de Canarias",
+};
+
+function pintarFicha(d) {
+  const foto = FOTOS[d.diputado_id]
+    ? `<img class="ficha-foto" src="${FOTOS[d.diputado_id]}" alt="Foto de ${d.nombre}">`
+    : `<div class="ficha-foto vacia">${iniciales(d.nombre)}</div>`;
+  const grid = d.sin_datos
+    ? `<div class="ficha-grid">
+         <div><div class="k">Circunscripción</div><div class="v" style="font-size:15px">${d.circunscripcion}</div></div>
+         <div><div class="k">Inmuebles</div><div class="v">s/d</div></div>
+         <div><div class="k">Viviendas directas</div><div class="v">s/d</div></div>
+         <div><div class="k">Patrimonio monetario</div><div class="v">s/d</div></div>
+       </div>`
+    : `<div class="ficha-grid">
+         <div><div class="k">Circunscripción</div><div class="v" style="font-size:15px">${d.circunscripcion}</div></div>
+         <div><div class="k">Inmuebles</div><div class="v">${d.inmuebles}</div></div>
+         <div><div class="k">Viviendas directas</div><div class="v">${d.viviendas}</div></div>
+         <div><div class="k">Patrimonio monetario</div><div class="v">${d.patrimonio_fmt}</div></div>
+         <div><div class="k">Deuda</div><div class="v">${d.deuda_fmt}</div></div>
+       </div>`;
+  const nota = d.sin_datos
+    ? `<div class="ficha-nota">Declaración de bienes presentada, aún <strong>pendiente de extracción OCR</strong>: por eso no se muestran cifras. El documento original está disponible en el enlace.</div>` : "";
+  const pdf = d.url_pdf
+    ? `<div class="ficha-pdf"><a href="${d.url_pdf}" target="_blank" rel="noopener">Ver declaración de bienes (PDF) ↗</a><span class="ficha-url">${d.url_pdf}</span></div>`
+    : `<div class="ficha-pdf"><span class="ficha-url">Sin declaración disponible en la fuente.</span></div>`;
+  const logo = LOGOS[d.sigla] ? `<img class="ficha-logo" style="${estiloLogo(d.sigla, 42)}" src="${LOGOS[d.sigla]}" alt="${d.sigla}">` : "";
+  const gobBadge = d.cargoGob
+    ? `<div class="ficha-gob">🏛 En el Gobierno de Canarias · <strong>${d.cargoGob}</strong></div>` : "";
+  const camaraBadge = CARGO_CAMARA[d.diputado_id]
+    ? `<div class="ficha-camara">🏛 <strong>${CARGO_CAMARA[d.diputado_id]}</strong></div>` : "";
+  ficha.html(`<div class="ficha-card" style="border-left:5px solid ${d.color}; padding-left:14px;">
+    <div class="ficha-col">${foto}${logo}</div>
+    <div class="ficha-body">
+      <div class="ficha-nombre">${d.nombre}</div>
+      <div class="ficha-grupo" style="color:${d.color}">${d.grupo}</div>
+      ${camaraBadge}${gobBadge}${grid}${nota}${pdf}
+    </div></div>`);
+}
+
+d3.selectAll("button").on("click", function() { actualizar(this.dataset.mode); });
+contador(statTotal, TOTAL_PARLAMENTO, fmtNum);
+actualizar("todos");
+</script>
+<script>
+/* Auto-altura cuando se abre incrustado (?embed=1) en el shell de pestañas. */
+(function(){
+  if(!new URLSearchParams(location.search).has('embed')) return;
+  var last=0;
+  function alto(){ return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, document.body.offsetHeight); }
+  function post(){ var h=alto(); if(Math.abs(h-last)<2) return; last=h; parent.postMessage({type:'odesocan-embed-height',height:h},'*'); }
+  var ht=null; function postDeb(){ clearTimeout(ht); ht=setTimeout(post,110); }   // agrupa ráfagas de mutaciones (contadores animados) en un solo aviso de altura
+  window.addEventListener('load', function(){ post(); setTimeout(post,250); setTimeout(post,800); setTimeout(post,1800); });
+  window.addEventListener('resize', postDeb);
+  if(window.ResizeObserver) new ResizeObserver(postDeb).observe(document.body);
+  new MutationObserver(postDeb).observe(document.body,{childList:true,subtree:true,attributes:true});
+  // Puente de scroll: dentro del iframe alto scrollIntoView no desplaza nada; en su lugar
+  // pedimos al shell que lleve la página hasta el elemento (p. ej. la ficha al seleccionar).
+  var _sci = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = function(){
+    try{ var y = this.getBoundingClientRect().top + (window.pageYOffset||0);
+      parent.postMessage({type:'odesocan-embed-scrollto', y:y}, '*'); }
+    catch(e){ try{ _sci.apply(this, arguments); }catch(_){} }
+  };
+})();
+</script>
+</body>
+</html>

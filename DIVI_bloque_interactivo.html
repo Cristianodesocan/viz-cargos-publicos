@@ -1,0 +1,179 @@
+<!-- ================================================================
+     ODESOCAN · Bloque interactivo - Cargos públicos de Canarias
+     ----------------------------------------------------------------
+     Pega TODO este fragmento (desde este comentario hasta el final)
+     en un módulo "Código" (Code) de Divi. NO uses un módulo de Texto:
+     ese sanea el <script> y rompe la visualización.
+
+     Antes de publicar, edita las DOS constantes marcadas con ← EDITAR
+     en el <script> de abajo:
+       · BASE_URL       → carpeta donde subiste los archivos de la viz.
+       · SCROLL_OFFSET  → alto (px) de tu menú fijo de Divi (si lo hay).
+
+     Requisito previo: sube TODA la carpeta "visualizacion web" (los 12
+     archivos: 3 HTML + 8 JS + este no hace falta) a tu servidor, por
+     ejemplo a  wp-content/uploads/viz-cargos-publicos/  vía FTP o el
+     Administrador de archivos del hosting (la Biblioteca de Medios de
+     WordPress no admite .html/.js con facilidad).
+     Todo va encapsulado bajo #odc-cargos-viz: no toca el resto de la web.
+     ================================================================ -->
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+
+<div id="odc-cargos-viz">
+  <div class="odc-head">
+    <span class="odc-flag"><span class="odc-dot"></span>Visualización interactiva</span>
+    <p class="odc-hint">Patrimonio y retribución declarados por los cargos públicos de Canarias.
+      Elige un ámbito y haz clic en cada persona para ver su ficha; pasa el cursor para un resumen.</p>
+  </div>
+  <div class="odc-tabs" role="tablist" aria-label="Ámbito institucional"></div>
+  <div class="odc-stage"></div>
+</div>
+
+<style>
+/* Todo prefijado con #odc-cargos-viz para NO afectar al resto de la web de ODESOCAN. */
+#odc-cargos-viz{
+  --odc-teal:#00C8B4; --odc-teal-dark:#009E8E; --odc-teal-light:#E0FAF7;
+  --odc-navy-dark:#0D1B2A; --odc-navy:#1A2F45; --odc-muted:#6B8CA5;
+  --odc-border:#E4EDF5; --odc-bg:#F5F8FA;
+  font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--odc-navy); line-height:1.5; text-align:left; max-width:1180px; margin:0 auto;
+}
+#odc-cargos-viz *{ box-sizing:border-box; }
+
+/* --- cabecera "bloque interactivo" (sustituye a la barra de marca) --- */
+#odc-cargos-viz .odc-head{ margin:0 0 16px; }
+#odc-cargos-viz .odc-flag{ display:inline-flex; align-items:center; gap:8px;
+  background:var(--odc-teal-light); color:var(--odc-teal-dark);
+  font-family:'Space Grotesk',system-ui,sans-serif; font-weight:700; font-size:11px;
+  letter-spacing:.1em; text-transform:uppercase; border-radius:999px; padding:5px 13px; }
+#odc-cargos-viz .odc-dot{ width:7px; height:7px; border-radius:50%; background:var(--odc-teal);
+  box-shadow:0 0 0 0 rgba(0,200,180,.6); animation:odc-pulse 2.2s infinite; }
+@keyframes odc-pulse{ 70%{box-shadow:0 0 0 8px rgba(0,200,180,0);} 100%{box-shadow:0 0 0 0 rgba(0,200,180,0);} }
+#odc-cargos-viz .odc-hint{ margin:11px 0 0; color:var(--odc-muted); font-size:14.5px; max-width:730px; }
+
+/* --- selector de ámbito (control segmentado) --- */
+#odc-cargos-viz .odc-tabs{ display:inline-flex; gap:4px; background:var(--odc-bg);
+  border:1px solid var(--odc-border); border-radius:14px; padding:4px; max-width:100%;
+  overflow-x:auto; -webkit-overflow-scrolling:touch; }
+#odc-cargos-viz .odc-tab{ flex:0 0 auto; display:flex; flex-direction:column; gap:1px;
+  cursor:pointer; border:0; background:transparent; color:var(--odc-navy); margin:0;
+  border-radius:10px; padding:9px 16px; text-align:left; font-family:inherit;
+  -webkit-appearance:none; appearance:none; min-width:152px; transition:background .15s ease; }
+#odc-cargos-viz .odc-tab:hover{ background:rgba(13,27,42,.05); }
+#odc-cargos-viz .odc-tab .t{ font-family:'Space Grotesk',system-ui,sans-serif; font-weight:700;
+  font-size:14.5px; line-height:1.15; letter-spacing:normal; text-transform:none; }
+#odc-cargos-viz .odc-tab .s{ font-size:11px; color:var(--odc-muted); line-height:1.2; }
+#odc-cargos-viz .odc-tab.on{ background:var(--odc-teal); box-shadow:0 3px 10px rgba(0,200,180,.32); }
+#odc-cargos-viz .odc-tab.on .t{ color:var(--odc-navy-dark); }
+#odc-cargos-viz .odc-tab.on .s{ color:rgba(13,27,42,.72); }
+#odc-cargos-viz .odc-tab:focus-visible{ outline:2px solid var(--odc-teal-dark); outline-offset:2px; }
+
+/* --- escenario (iframes con carga perezosa) --- */
+#odc-cargos-viz .odc-stage{ position:relative; margin-top:16px; }
+#odc-cargos-viz .odc-frame{ display:none; }
+#odc-cargos-viz .odc-frame.on{ display:block; }
+#odc-cargos-viz iframe{ display:block; width:100%; border:0; min-height:70vh; background:var(--odc-bg); }
+#odc-cargos-viz .odc-load{ position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:12px; min-height:70vh; background:var(--odc-bg); }
+#odc-cargos-viz .odc-load.off{ display:none; }
+#odc-cargos-viz .odc-spin{ width:32px; height:32px; border-radius:50%;
+  border:3px solid var(--odc-teal-light); border-top-color:var(--odc-teal); animation:odc-spin .8s linear infinite; }
+@keyframes odc-spin{ to{ transform:rotate(360deg); } }
+#odc-cargos-viz .odc-load .txt{ font-family:'Space Grotesk',system-ui,sans-serif; font-weight:600;
+  color:var(--odc-muted); font-size:13px; }
+
+/* --- móvil: las 3 pestañas ocupan el ancho, sin subtítulo --- */
+@media (max-width:600px){
+  #odc-cargos-viz .odc-tabs{ display:flex; width:100%; }
+  #odc-cargos-viz .odc-tab{ flex:1 1 0; min-width:0; padding:9px 8px; align-items:center; text-align:center; }
+  #odc-cargos-viz .odc-tab .t{ font-size:12.5px; }
+  #odc-cargos-viz .odc-tab .s{ display:none; }
+}
+</style>
+
+<script>
+(function(){
+  /* ======================= EDITAR AQUÍ ======================= */
+  var BASE_URL = 'https://cristianodesocan.github.io/viz-cargos-publicos/'; // GitHub Pages de este repo (ya configurado). Cambia solo si mueves los archivos.
+  var SCROLL_OFFSET = 90; // ← EDITAR: alto en px de tu menú fijo de Divi (usa 0 si el menú no es fijo)
+  /* =========================================================== */
+
+  var root = document.getElementById('odc-cargos-viz');
+  if(!root || root.__odc) return; root.__odc = true;   // evita doble init si se pega dos veces
+  var tabsEl = root.querySelector('.odc-tabs');
+  var stageEl = root.querySelector('.odc-stage');
+
+  var TABS = [
+    { id:'parlamento',  label:'Parlamento de Canarias', sub:'70 diputados · XI Legislatura', file:'parlamento_u_d3.html' },
+    { id:'gobierno',    label:'Gobierno de Canarias',   sub:'Consejo de Gobierno · 13 miembros', file:'gobierno_organigrama_d3.html' },
+    { id:'altoscargos', label:'Altos cargos',           sub:'Estructura ejecutiva · 147 cargos', file:'altos_cargos_gobierno_d3.html' }
+  ];
+  var refs = {};
+
+  TABS.forEach(function(t){
+    var tab = document.createElement('button');
+    tab.type = 'button'; tab.className = 'odc-tab'; tab.setAttribute('role','tab');
+    tab.id = 'odc-tab-' + t.id;
+    tab.setAttribute('aria-controls', 'odc-panel-' + t.id);
+    tab.setAttribute('aria-selected', 'false');
+    tab.innerHTML = '<span class="t"></span><span class="s"></span>';
+    tab.querySelector('.t').textContent = t.label;
+    tab.querySelector('.s').textContent = t.sub;
+    tab.addEventListener('click', function(){ activar(t.id); });
+    tabsEl.appendChild(tab);
+
+    var wrap = document.createElement('div');
+    wrap.className = 'odc-frame'; wrap.id = 'odc-panel-' + t.id;
+    wrap.setAttribute('role','tabpanel'); wrap.setAttribute('aria-labelledby','odc-tab-'+t.id); wrap.tabIndex = 0;
+    var load = document.createElement('div'); load.className = 'odc-load';
+    load.innerHTML = '<div class="odc-spin"></div><div class="txt"></div>';
+    load.querySelector('.txt').textContent = 'Cargando ' + t.label + '…';
+    var fr = document.createElement('iframe');
+    fr.title = t.label; fr.setAttribute('scrolling','no'); fr.loading = 'lazy';
+    fr.addEventListener('load', function(){ refs[t.id].load.className = 'odc-load off'; });
+    wrap.appendChild(load); wrap.appendChild(fr); stageEl.appendChild(wrap);
+
+    refs[t.id] = { tab:tab, wrap:wrap, frame:fr, load:load, src:BASE_URL + t.file + '?embed=1', loaded:false };
+  });
+
+  function frameDe(src){ for(var id in refs){ if(refs[id].frame.contentWindow === src) return refs[id].frame; } return null; }
+
+  // Mensajes de los hijos (modo embed): alto del iframe y petición de scroll a la ficha.
+  window.addEventListener('message', function(e){
+    var d = e.data; if(!d) return;
+    if(d.type === 'odesocan-embed-height'){
+      var f = frameDe(e.source); if(f) f.style.height = Math.max(420, d.height) + 'px';
+    } else if(d.type === 'odesocan-embed-scrollto'){
+      var f = frameDe(e.source); if(!f) return;
+      var objetivo = function(){ var top = f.getBoundingClientRect().top + window.pageYOffset; return Math.max(0, top + d.y - SCROLL_OFFSET); };
+      // la ficha crece al rellenarse y re-sincroniza la altura → re-afirmamos el destino
+      window.scrollTo({ top:objetivo(), behavior:'smooth' });
+      setTimeout(function(){ window.scrollTo({ top:objetivo(), behavior:'auto' }); }, 340);
+      setTimeout(function(){ window.scrollTo({ top:objetivo(), behavior:'auto' }); }, 680);
+    }
+  });
+
+  // Teclado: flechas / Home / End entre pestañas (patrón WAI-ARIA tabs).
+  tabsEl.addEventListener('keydown', function(e){
+    var idx = -1; TABS.forEach(function(t,i){ if(refs[t.id].tab.classList.contains('on')) idx = i; });
+    if(idx < 0) idx = 0; var ni = idx;
+    if(e.key === 'ArrowRight' || e.key === 'ArrowDown') ni = (idx+1) % TABS.length;
+    else if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') ni = (idx-1+TABS.length) % TABS.length;
+    else if(e.key === 'Home') ni = 0; else if(e.key === 'End') ni = TABS.length-1; else return;
+    e.preventDefault(); activar(TABS[ni].id); refs[TABS[ni].id].tab.focus();
+  });
+
+  function activar(id){
+    TABS.forEach(function(t){
+      var r = refs[t.id], on = t.id === id;
+      r.tab.classList.toggle('on', on);
+      r.tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      r.wrap.classList.toggle('on', on);
+      if(on && !r.loaded){ r.frame.src = r.src; r.loaded = true; }   // carga perezosa
+    });
+  }
+  activar(TABS[0].id);
+})();
+</script>
+<!-- ================= fin del bloque ODESOCAN ================= -->

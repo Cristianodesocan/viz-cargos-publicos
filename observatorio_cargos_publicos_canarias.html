@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cargos públicos de Canarias · Patrimonio y retribución - ODESOCAN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#00C8B4; --teal-dark:#009E8E; --teal-light:#E0FAF7;
+    --navy-dark:#0D1B2A; --navy-mid:#1A2F45; --navy-deep:#0F3460;
+    --white:#fff; --off-white:#F5F8FA; --text-main:#1A2F45; --text-muted:#6B8CA5;
+    --border-soft:#E4EDF5; --border-card:rgba(13,27,42,.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--off-white);color:var(--text-main);
+    font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--teal);border-radius:99px;}
+
+  /* ---------- Barra superior (marca + pestañas) ---------- */
+  .appbar{position:sticky;top:0;z-index:100;
+    background:linear-gradient(145deg,#0D1B2A 0%,#1A2F45 62%,#0F3460 100%);
+    box-shadow:0 6px 24px rgba(13,27,42,.22);}
+  .appbar-inner{max-width:1200px;margin:0 auto;padding:14px clamp(16px,4vw,40px) 0;}
+  .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .brand .mark{flex:none;display:flex;}
+  .brand .word{font-family:'Space Grotesk';font-weight:700;color:#fff;font-size:15px;line-height:1.15;}
+  .brand .word small{display:block;font-family:'Inter';font-weight:400;
+    color:rgba(255,255,255,.55);font-size:11px;letter-spacing:.04em;margin-top:1px;}
+  .brand .umbral{margin-left:auto;display:inline-flex;align-items:center;gap:8px;
+    background:rgba(0,200,180,.15);border:1px solid rgba(0,200,180,.3);border-radius:99px;
+    padding:5px 13px;font-family:'Space Grotesk';font-weight:700;font-size:10.5px;
+    letter-spacing:.12em;text-transform:uppercase;color:#8FF3E7;}
+  .brand .umbral .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);
+    box-shadow:0 0 0 0 rgba(0,200,180,.7);animation:pulso 2.2s infinite;}
+  @keyframes pulso{0%{box-shadow:0 0 0 0 rgba(0,200,180,.6);}70%{box-shadow:0 0 0 8px rgba(0,200,180,0);}100%{box-shadow:0 0 0 0 rgba(0,200,180,0);}}
+
+  /* ---------- Pestañas ---------- */
+  .tabs{display:flex;gap:8px;margin-top:14px;overflow-x:auto;padding-bottom:0;}
+  .tab{flex:0 0 auto;display:flex;flex-direction:column;gap:1px;cursor:pointer;
+    border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
+    color:#fff;border-bottom:none;border-radius:12px 12px 0 0;
+    padding:11px 18px 13px;min-width:190px;text-align:left;font-family:inherit;
+    transition:background .16s ease,transform .12s ease;}
+  .tab:hover{background:rgba(255,255,255,.1);}
+  .tab .t{font-family:'Space Grotesk';font-weight:700;font-size:14.5px;line-height:1.15;}
+  .tab .s{font-size:11px;color:rgba(255,255,255,.6);line-height:1.2;}
+  .tab.activa{background:var(--off-white);color:var(--navy-dark);
+    border-color:transparent;box-shadow:0 -3px 0 var(--teal) inset;}
+  .tab.activa .t{color:var(--navy-dark);}
+  .tab.activa .s{color:var(--text-muted);}
+  .tab:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+
+  /* ---------- Escenario (iframes) ---------- */
+  .stage{position:relative;max-width:1400px;margin:0 auto;}
+  .frame-wrap{display:none;}
+  .frame-wrap.activa{display:block;}
+  iframe{display:block;width:100%;border:0;min-height:82vh;background:var(--off-white);}
+
+  /* velo de carga */
+  .cargando{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:14px;background:var(--off-white);
+    z-index:5;min-height:82vh;}
+  .cargando.oculto{display:none;}
+  .spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--teal-light);
+    border-top-color:var(--teal);animation:giro .8s linear infinite;}
+  @keyframes giro{to{transform:rotate(360deg);}}
+  .cargando .txt{font-family:'Space Grotesk';font-weight:600;color:var(--text-muted);
+    font-size:13px;letter-spacing:.02em;}
+
+  @media (max-width:600px){
+    .appbar-inner{position:relative;}
+    /* pista visual de que hay más pestañas al hacer scroll horizontal */
+    .appbar-inner::after{content:"";position:absolute;right:0;bottom:0;width:42px;height:62px;
+      pointer-events:none;background:linear-gradient(to right, rgba(15,52,96,0), #0F3460 78%);}
+    .tab{min-width:142px;padding:9px 13px 11px;}
+    .tab .t{font-size:13px;}
+    .brand .umbral{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-inner">
+    <div class="brand">
+      <span class="mark">
+        <svg width="28" height="28" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="18" fill="none" stroke="#00C8B4" stroke-width="2.5"/>
+          <circle cx="20" cy="20" r="3.4" fill="#00C8B4"/>
+          <g stroke="#00C8B4" stroke-width="2.5">
+            <line x1="20" y1="3" x2="20" y2="9"/><line x1="20" y1="31" x2="20" y2="37"/>
+            <line x1="3" y1="20" x2="9" y2="20"/><line x1="31" y1="20" x2="37" y2="20"/>
+          </g>
+        </svg>
+      </span>
+      <span class="word">Cargos públicos de Canarias
+        <small>Patrimonio y retribución · ODESOCAN</small></span>
+      <span class="umbral"><span class="dot"></span>Observatorio de Derechos Sociales de Canarias</span>
+    </div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Ámbito institucional"></nav>
+  </div>
+</header>
+
+<main class="stage" id="stage"></main>
+
+<script>
+const TABS = [
+  { id:'parlamento',  label:'Parlamento de Canarias', sub:'70 diputados · XI Legislatura',
+    src:'parlamento_u_d3.html?embed=1' },
+  { id:'gobierno',    label:'Gobierno de Canarias',   sub:'Consejo de Gobierno · 13 miembros',
+    src:'gobierno_organigrama_d3.html?embed=1' },
+  { id:'altoscargos', label:'Altos cargos',           sub:'Estructura ejecutiva · 147 cargos',
+    src:'altos_cargos_gobierno_d3.html?embed=1' },
+];
+
+const tabsEl  = document.getElementById('tabs');
+const stageEl = document.getElementById('stage');
+const refs = {};   // id -> {tab, wrap, iframe, velo, cargado}
+
+TABS.forEach((t, i) => {
+  const tab = document.createElement('button');
+  tab.className = 'tab';
+  tab.type = 'button';
+  tab.setAttribute('role', 'tab');
+  tab.id = 'tab-' + t.id;
+  tab.setAttribute('aria-controls', 'wrap-' + t.id);
+  tab.setAttribute('aria-selected', 'false');
+  tab.innerHTML = `<span class="t">${t.label}</span><span class="s">${t.sub}</span>`;
+  tab.addEventListener('click', () => activar(t.id, true));
+  tabsEl.appendChild(tab);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'frame-wrap';
+  wrap.id = 'wrap-' + t.id;
+  wrap.setAttribute('role', 'tabpanel');
+  wrap.setAttribute('aria-labelledby', 'tab-' + t.id);
+  wrap.setAttribute('tabindex', '0');
+  const velo = document.createElement('div');
+  velo.className = 'cargando';
+  velo.innerHTML = `<div class="spin"></div><div class="txt">Cargando ${t.label}…</div>`;
+  const iframe = document.createElement('iframe');
+  iframe.title = t.label;
+  iframe.setAttribute('scrolling', 'no');
+  iframe.addEventListener('load', () => { refs[t.id].velo.classList.add('oculto'); });
+  wrap.appendChild(velo);
+  wrap.appendChild(iframe);
+  stageEl.appendChild(wrap);
+
+  refs[t.id] = { tab, wrap, iframe, velo, cargado:false, src:t.src };
+});
+
+// Mensajes de los hijos (modo embed): alto del iframe y petición de scroll.
+function iframePorEmisor(source) {
+  for (const id in refs) if (refs[id].iframe.contentWindow === source) return refs[id].iframe;
+  return null;
+}
+window.addEventListener('message', (e) => {
+  const d = e.data;
+  if (!d) return;
+  if (d.type === 'odesocan-embed-height') {
+    const f = iframePorEmisor(e.source);
+    if (f) f.style.height = Math.max(480, d.height) + 'px';
+  } else if (d.type === 'odesocan-embed-scrollto') {
+    // El scrollIntoView del hijo no funciona dentro del iframe alto; lo hacemos aquí:
+    // desplazamos la ventana hasta el elemento (p. ej. la ficha), descontando la barra fija.
+    const f = iframePorEmisor(e.source);
+    if (!f) return;
+    const objetivo = () => {
+      const top = f.getBoundingClientRect().top + window.pageYOffset;
+      const headerH = document.querySelector('.appbar').offsetHeight;
+      return Math.max(0, top + d.y - headerH - 14);
+    };
+    window.scrollTo({ top: objetivo(), behavior: 'smooth' });
+    // La ficha crece al rellenarse (contadores animados) y re-sincroniza la altura, lo que
+    // puede interrumpir el scroll suave: re-afirmamos el destino cuando ya se ha asentado.
+    setTimeout(() => window.scrollTo({ top: objetivo(), behavior: 'auto' }), 340);
+    setTimeout(() => window.scrollTo({ top: objetivo(), behavior: 'auto' }), 680);
+  }
+});
+
+// Navegación por teclado entre pestañas (patrón WAI-ARIA tabs).
+tabsEl.addEventListener('keydown', (e) => {
+  let idx = TABS.findIndex(t => refs[t.id].tab.classList.contains('activa'));
+  if (idx < 0) idx = 0;
+  let ni = idx;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') ni = (idx + 1) % TABS.length;
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') ni = (idx - 1 + TABS.length) % TABS.length;
+  else if (e.key === 'Home') ni = 0;
+  else if (e.key === 'End') ni = TABS.length - 1;
+  else return;
+  e.preventDefault();
+  activar(TABS[ni].id, true);
+  refs[TABS[ni].id].tab.focus();
+});
+
+function activar(id, empujarHash) {
+  TABS.forEach(t => {
+    const r = refs[t.id], on = t.id === id;
+    r.tab.classList.toggle('activa', on);
+    r.tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    r.wrap.classList.toggle('activa', on);
+    if (on && !r.cargado) {           // carga perezosa: solo al abrir por primera vez
+      r.iframe.src = r.src;
+      r.cargado = true;
+    }
+  });
+  if (empujarHash) history.replaceState(null, '', '#' + id);
+}
+
+// Pestaña inicial: por hash de la URL, o la primera.
+const inicial = TABS.find(t => t.id === location.hash.slice(1)) ? location.hash.slice(1) : TABS[0].id;
+activar(inicial, false);
+window.addEventListener('hashchange', () => {
+  const id = location.hash.slice(1);
+  if (refs[id]) activar(id, false);
+});
+</script>
+</body>
+</html>
