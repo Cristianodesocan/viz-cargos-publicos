@@ -11,7 +11,7 @@ de los cargos públicos de Canarias, en tres bloques:
 
 Página completa (las 3 pestañas):
 
-> https://cristianodesocan.github.io/viz-cargos-publicos/observatorio_cargos_publicos_canarias.html
+> https://cristianodesocan.github.io/viz-cargos-publicos/
 
 ## Datos
 
