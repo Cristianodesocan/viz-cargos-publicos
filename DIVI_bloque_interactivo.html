@@ -146,7 +146,22 @@
       var f = frameDe(e.source); if(f) f.style.height = Math.max(420, d.height) + 'px';
     } else if(d.type === 'odesocan-embed-scrollto'){
       var f = frameDe(e.source); if(!f) return;
-      var objetivo = function(){ var top = f.getBoundingClientRect().top + window.pageYOffset; return Math.max(0, top + d.y - SCROLL_OFFSET); };
+      // Alto del encabezado fijo del tema, medido EN VIVO en cada intento (así se adapta a
+      // menús que encogen al hacer scroll, como Divi). Si no se detecta ninguno, cae en SCROLL_OFFSET.
+      var altoBarraFija = function(){
+        var barra = 0, mio = document.getElementById('odc-cargos-viz');
+        var cands = document.querySelectorAll('#top-header, #main-header, .et-fixed-header, header, .site-header, [class*="fixed-header"]');
+        for(var i=0;i<cands.length;i++){
+          var el = cands[i];
+          if(mio && (el === mio || mio.contains(el) || el.contains(mio))) continue;
+          var cs = getComputedStyle(el);
+          if(cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+          var r = el.getBoundingClientRect();
+          if(r.top <= 2 && r.height > 10 && r.height < 400) barra = Math.max(barra, r.bottom);
+        }
+        return barra || SCROLL_OFFSET;
+      };
+      var objetivo = function(){ var top = f.getBoundingClientRect().top + window.pageYOffset; return Math.max(0, top + d.y - altoBarraFija() - 16); };
       // la ficha crece al rellenarse y re-sincroniza la altura → re-afirmamos el destino
       window.scrollTo({ top:objetivo(), behavior:'smooth' });
       setTimeout(function(){ window.scrollTo({ top:objetivo(), behavior:'auto' }); }, 340);
