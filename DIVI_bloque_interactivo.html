@@ -161,7 +161,7 @@
         }
         return barra || SCROLL_OFFSET;
       };
-      var objetivo = function(){ var top = f.getBoundingClientRect().top + window.pageYOffset; return Math.max(0, top + d.y - altoBarraFija() - 16); };
+      var objetivo = function(){ var top = f.getBoundingClientRect().top + window.pageYOffset; return Math.max(0, top + d.y - altoBarraFija() - 26); };
       // la ficha crece al rellenarse y re-sincroniza la altura → re-afirmamos el destino
       window.scrollTo({ top:objetivo(), behavior:'smooth' });
       setTimeout(function(){ window.scrollTo({ top:objetivo(), behavior:'auto' }); }, 340);
