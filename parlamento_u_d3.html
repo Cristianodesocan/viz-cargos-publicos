@@ -503,6 +503,10 @@ const datosU = datos.map(d => {
   return { ...d, x: p.x, y: p.y, bancada: p.bancada, salario, cargoGob };
 });
 
+// Conflicto de intereses = 3+ viviendas O 3+ inmuebles (unión, cada diputado/a una sola vez).
+// En la vista general (todos) el KPI cuenta a esos; al filtrar, el subconjunto de cada criterio.
+resumen.todos.apagados = datosU.filter(d => d.destaca_viviendas || d.destaca_inmuebles).length;
+
 // guias concentricas
 function arco(rx, ry, a0, a1) {
   const pts = d3.range(0, 61).map(i => {
@@ -689,6 +693,12 @@ function pintarFicha(d) {
     ? `<div class="fc-badge" style="color:${d.color}"><span>🏛</span>${CARGO_CAMARA[d.diputado_id]}</div>` : "";
   const gobBadge = d.cargoGob
     ? `<div class="fc-badge" style="color:${d.color}"><span>🏛</span>En el Gobierno de Canarias · ${d.cargoGob}</div>` : "";
+  // Posible conflicto de intereses = 3+ viviendas o 3+ inmuebles. Badge estilo Gobierno, en ámbar.
+  const conflicto = d.destaca_viviendas || d.destaca_inmuebles;
+  const motivoConf = (d.destaca_viviendas && d.destaca_inmuebles) ? "3+ viviendas e inmuebles"
+                   : d.destaca_viviendas ? "3+ viviendas" : "3+ inmuebles";
+  const conflictoBadge = conflicto
+    ? `<div class="fc-badge" style="color:#B45309"><span>⚠️</span>Posible conflicto de intereses · ${motivoConf}</div>` : "";
   const stats = d.sin_datos
     ? `<div class="fc-stats">
          <div class="fc-stat"><div class="k">Circunscripción</div><div class="v" style="font-size:16px">${d.circunscripcion}</div></div>
@@ -715,7 +725,7 @@ function pintarFicha(d) {
     <div class="fc-datos">
       <div class="fc-nombre">${d.nombre}</div>
       <div class="fc-grupo" style="color:${d.color}">${d.grupo}</div>
-      ${camaraBadge}${gobBadge}${stats}${nota}${pdf}
+      ${camaraBadge}${gobBadge}${conflictoBadge}${stats}${nota}${pdf}
     </div>
   </div>`);
   // dispara la transición (abajo -> arriba): fuerza el reflow del estado inicial
