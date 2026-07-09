@@ -22,10 +22,12 @@
   ::-webkit-scrollbar-thumb{background:var(--teal);border-radius:99px;}
 
   /* ---------- Barra superior (marca + pestañas) ---------- */
-  .appbar{position:sticky;top:0;z-index:100;
+  /* barra no-fija: con las pestañas apiladas en vertical, dejarla sticky ocuparía
+     demasiado alto de pantalla; se desplaza con el contenido. */
+  .appbar{position:static;z-index:100;
     background:linear-gradient(145deg,#0D1B2A 0%,#1A2F45 62%,#0F3460 100%);
     box-shadow:0 6px 24px rgba(13,27,42,.22);}
-  .appbar-inner{max-width:1200px;margin:0 auto;padding:14px clamp(16px,4vw,40px) 0;}
+  .appbar-inner{max-width:1200px;margin:0 auto;padding:14px clamp(16px,4vw,40px) 18px;}
   .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
   .brand .mark{flex:none;display:flex;}
   .brand .word{font-family:'Space Grotesk';font-weight:700;color:#fff;font-size:15px;line-height:1.15;}
@@ -39,20 +41,25 @@
     box-shadow:0 0 0 0 rgba(0,200,180,.7);animation:pulso 2.2s infinite;}
   @keyframes pulso{0%{box-shadow:0 0 0 0 rgba(0,200,180,.6);}70%{box-shadow:0 0 0 8px rgba(0,200,180,0);}100%{box-shadow:0 0 0 0 rgba(0,200,180,0);}}
 
-  /* ---------- Pestañas ---------- */
-  .tabs{display:flex;gap:8px;margin-top:14px;overflow-x:auto;padding-bottom:0;}
-  .tab{flex:0 0 auto;display:flex;flex-direction:column;gap:1px;cursor:pointer;
-    border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);
-    color:#fff;border-bottom:none;border-radius:12px 12px 0 0;
-    padding:11px 18px 13px;min-width:190px;text-align:left;font-family:inherit;
-    transition:background .16s ease,transform .12s ease;}
-  .tab:hover{background:rgba(255,255,255,.1);}
-  .tab .t{font-family:'Space Grotesk';font-weight:700;font-size:14.5px;line-height:1.15;}
-  .tab .s{font-size:11px;color:rgba(255,255,255,.6);line-height:1.2;}
-  .tab.activa{background:var(--off-white);color:var(--navy-dark);
-    border-color:transparent;box-shadow:0 -3px 0 var(--teal) inset;}
+  /* ---------- Pestañas VERTICALES (apiladas, clic evidente) ---------- */
+  .tabs{display:flex;flex-direction:column;gap:8px;margin-top:14px;width:100%;max-width:560px;}
+  .tab{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;
+    width:100%;cursor:pointer;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);
+    color:#fff;border-radius:12px;padding:13px 16px;text-align:left;font-family:inherit;
+    transition:background .16s ease,border-color .16s ease,transform .12s ease;}
+  .tab:hover{background:rgba(255,255,255,.12);border-color:rgba(0,200,180,.5);transform:translateY(-1px);}
+  .tab .t{grid-column:1;grid-row:1;font-family:'Space Grotesk';font-weight:700;font-size:15px;line-height:1.18;}
+  .tab .s{grid-column:1;grid-row:2;font-size:11.5px;color:rgba(255,255,255,.62);line-height:1.25;margin-top:2px;}
+  /* chevron: pista visual de que la pestaña es clicable */
+  .tab::after{content:'\203A';grid-column:2;grid-row:1 / span 2;align-self:center;
+    font-family:'Space Grotesk';font-size:22px;line-height:1;color:rgba(255,255,255,.55);
+    transition:color .15s ease,transform .15s ease;}
+  .tab:hover::after{color:var(--teal);transform:translateX(3px);}
+  .tab.activa{background:var(--off-white);color:var(--navy-dark);border-color:transparent;
+    box-shadow:0 6px 18px rgba(0,0,0,.20);}
   .tab.activa .t{color:var(--navy-dark);}
   .tab.activa .s{color:var(--text-muted);}
+  .tab.activa::after{color:var(--teal-dark);}
   .tab:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
 
   /* ---------- Escenario (iframes) ---------- */
@@ -73,12 +80,9 @@
     font-size:13px;letter-spacing:.02em;}
 
   @media (max-width:600px){
-    .appbar-inner{position:relative;}
-    /* pista visual de que hay más pestañas al hacer scroll horizontal */
-    .appbar-inner::after{content:"";position:absolute;right:0;bottom:0;width:42px;height:62px;
-      pointer-events:none;background:linear-gradient(to right, rgba(15,52,96,0), #0F3460 78%);}
-    .tab{min-width:142px;padding:9px 13px 11px;}
-    .tab .t{font-size:13px;}
+    .tabs{max-width:none;}
+    .tab{padding:12px 14px;}
+    .tab .t{font-size:14px;}
     .brand .umbral{display:none;}
   }
 </style>
@@ -172,7 +176,10 @@ window.addEventListener('message', (e) => {
     if (!f) return;
     const objetivo = () => {
       const top = f.getBoundingClientRect().top + window.pageYOffset;
-      const headerH = document.querySelector('.appbar').offsetHeight;
+      // la barra ya no es fija (pestañas verticales): solo se descuenta su alto si vuelve a ser sticky/fixed
+      const ab = document.querySelector('.appbar');
+      const abPos = ab ? getComputedStyle(ab).position : 'static';
+      const headerH = (abPos === 'sticky' || abPos === 'fixed') ? ab.offsetHeight : 0;
       return Math.max(0, top + d.y - headerH - 14);
     };
     window.scrollTo({ top: objetivo(), behavior: 'smooth' });
