@@ -280,11 +280,10 @@
        fotos/parlamento_cut/; si falla, cae a la foto normal (.fc-sin-recorte). ---- */
     .fc { display: flex; align-items: flex-end; gap: 24px; }
     .fc-retrato-wrap { position: relative; flex: none; width: 172px; height: 214px; display: flex; align-items: flex-end; justify-content: center; }
-    .fc-retrato-wrap::after { content:""; position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:72%; height:18px; border-radius:50%; background: radial-gradient(ellipse at center, rgba(13,27,42,.20), rgba(13,27,42,0) 70%); }
-    .fc-retrato { position: relative; max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(13,27,42,.20)); border-radius: 0 0 16px 16px;
-      /* suaviza el corte recto inferior del recorte (torso) para que no quede una línea dura */
-      -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent 100%); mask-image: linear-gradient(to bottom, #000 86%, transparent 100%); }
-    .fc-retrato.fc-sin-recorte { border-radius: 10px; -webkit-mask-image: none; mask-image: none; }
+    /* sombra en el pie: asienta el retrato sobre el suelo (en vez de desvanecerlo) */
+    .fc-retrato-wrap::after { content:""; position:absolute; bottom:1px; left:50%; transform:translateX(-50%); width:82%; height:22px; border-radius:50%; background: radial-gradient(ellipse at center, rgba(13,27,42,.30), rgba(13,27,42,0) 72%); z-index:0; }
+    .fc-retrato { position: relative; z-index:1; max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(13,27,42,.20)); border-radius: 0 0 14px 14px; }
+    .fc-retrato.fc-sin-recorte { border-radius: 10px; }
     .fc-datos { flex: 1; min-width: 0; padding-bottom: 6px; }
     .fc-nombre { font-family:'Space Grotesk',sans-serif; font-weight: 700; font-size: 26px; line-height: 1.12; letter-spacing:-.01em; color:#0D1B2A; }
     .fc-grupo { font-weight: 700; font-size: 14.5px; margin-top: 3px; }
