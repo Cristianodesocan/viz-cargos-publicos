@@ -52,21 +52,27 @@
 @keyframes odc-pulse{ 70%{box-shadow:0 0 0 8px rgba(0,200,180,0);} 100%{box-shadow:0 0 0 0 rgba(0,200,180,0);} }
 #odc-cargos-viz .odc-hint{ margin:11px 0 0; color:var(--odc-muted); font-size:14.5px; max-width:730px; }
 
-/* --- selector de ámbito (control segmentado) --- */
-#odc-cargos-viz .odc-tabs{ display:inline-flex; gap:4px; background:var(--odc-bg);
-  border:1px solid var(--odc-border); border-radius:14px; padding:4px; max-width:100%;
-  overflow-x:auto; -webkit-overflow-scrolling:touch; }
-#odc-cargos-viz .odc-tab{ flex:0 0 auto; display:flex; flex-direction:column; gap:1px;
-  cursor:pointer; border:0; background:transparent; color:var(--odc-navy); margin:0;
-  border-radius:10px; padding:9px 16px; text-align:left; font-family:inherit;
-  -webkit-appearance:none; appearance:none; min-width:152px; transition:background .15s ease; }
-#odc-cargos-viz .odc-tab:hover{ background:rgba(13,27,42,.05); }
-#odc-cargos-viz .odc-tab .t{ font-family:'Space Grotesk',system-ui,sans-serif; font-weight:700;
-  font-size:14.5px; line-height:1.15; letter-spacing:normal; text-transform:none; }
-#odc-cargos-viz .odc-tab .s{ font-size:11px; color:var(--odc-muted); line-height:1.2; }
-#odc-cargos-viz .odc-tab.on{ background:var(--odc-teal); box-shadow:0 3px 10px rgba(0,200,180,.32); }
+/* --- selector de ámbito: pestañas VERTICALES apiladas (clic evidente) --- */
+#odc-cargos-viz .odc-tabs{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:540px; }
+#odc-cargos-viz .odc-tab{ display:grid; grid-template-columns:1fr auto; align-items:center; column-gap:12px;
+  width:100%; cursor:pointer; border:1px solid var(--odc-border); background:#fff; color:var(--odc-navy);
+  margin:0; border-radius:13px; padding:14px 16px; text-align:left; font-family:inherit;
+  -webkit-appearance:none; appearance:none; box-shadow:0 1px 4px rgba(13,27,42,.05);
+  transition:border-color .15s ease, box-shadow .15s ease, transform .12s ease, background .15s ease; }
+#odc-cargos-viz .odc-tab:hover{ border-color:var(--odc-teal); box-shadow:0 5px 16px rgba(0,200,180,.16); transform:translateY(-1px); }
+#odc-cargos-viz .odc-tab .t{ grid-column:1; grid-row:1; font-family:'Space Grotesk',system-ui,sans-serif;
+  font-weight:700; font-size:15px; line-height:1.18; letter-spacing:normal; text-transform:none; }
+#odc-cargos-viz .odc-tab .s{ grid-column:1; grid-row:2; font-size:12px; color:var(--odc-muted); line-height:1.25; margin-top:2px; }
+/* chevron: pista visual de que la pestaña es clicable */
+#odc-cargos-viz .odc-tab::after{ content:'\203A'; grid-column:2; grid-row:1 / span 2; align-self:center;
+  font-family:'Space Grotesk',system-ui,sans-serif; font-size:22px; line-height:1; color:var(--odc-muted);
+  transition:color .15s ease, transform .15s ease; }
+#odc-cargos-viz .odc-tab:hover::after{ color:var(--odc-teal-dark); transform:translateX(3px); }
+#odc-cargos-viz .odc-tab.on{ background:var(--odc-teal-light); border-color:var(--odc-teal);
+  box-shadow:0 5px 16px rgba(0,200,180,.20); }
 #odc-cargos-viz .odc-tab.on .t{ color:var(--odc-navy-dark); }
-#odc-cargos-viz .odc-tab.on .s{ color:rgba(13,27,42,.72); }
+#odc-cargos-viz .odc-tab.on .s{ color:var(--odc-teal-dark); }
+#odc-cargos-viz .odc-tab.on::after{ color:var(--odc-teal-dark); }
 #odc-cargos-viz .odc-tab:focus-visible{ outline:2px solid var(--odc-teal-dark); outline-offset:2px; }
 
 /* --- escenario (iframes con carga perezosa) --- */
@@ -83,12 +89,11 @@
 #odc-cargos-viz .odc-load .txt{ font-family:'Space Grotesk',system-ui,sans-serif; font-weight:600;
   color:var(--odc-muted); font-size:13px; }
 
-/* --- móvil: las 3 pestañas ocupan el ancho, sin subtítulo --- */
+/* --- móvil: las 3 pestañas verticales ocupan todo el ancho --- */
 @media (max-width:600px){
-  #odc-cargos-viz .odc-tabs{ display:flex; width:100%; }
-  #odc-cargos-viz .odc-tab{ flex:1 1 0; min-width:0; padding:9px 8px; align-items:center; text-align:center; }
-  #odc-cargos-viz .odc-tab .t{ font-size:12.5px; }
-  #odc-cargos-viz .odc-tab .s{ display:none; }
+  #odc-cargos-viz .odc-tabs{ max-width:none; }
+  #odc-cargos-viz .odc-tab{ padding:12px 14px; }
+  #odc-cargos-viz .odc-tab .t{ font-size:14px; }
 }
 </style>
 
