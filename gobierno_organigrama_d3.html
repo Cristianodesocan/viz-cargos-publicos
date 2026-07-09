@@ -699,7 +699,11 @@ arrancar();
   // pedimos al shell que lleve la página hasta el elemento (p. ej. la ficha al seleccionar).
   var _sci = Element.prototype.scrollIntoView;
   Element.prototype.scrollIntoView = function(){
-    try{ var y = this.getBoundingClientRect().top + (window.pageYOffset||0);
+    try{
+      // En un padre de OTRO origen (WordPress/Divi) el menu fijo suele tapar mas el borde
+      // superior de la ficha: damos holgura extra. En el shell (mismo origen) no hace falta.
+      var extra = 0; try{ void window.parent.location.href; }catch(_o){ extra = 48; }
+      var y = this.getBoundingClientRect().top + (window.pageYOffset||0) - extra;
       parent.postMessage({type:'odesocan-embed-scrollto', y:y}, '*'); }
     catch(e){ try{ _sci.apply(this, arguments); }catch(_){} }
   };
