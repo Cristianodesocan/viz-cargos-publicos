@@ -257,8 +257,9 @@
     .ficha-col { display: flex; flex-direction: column; align-items: center; gap: 10px; flex: none; }
     .ficha-logo { display: block; object-fit: contain; }
     /* --- cuadro-ficha bajo la figura --- */
-    .ficha { margin: 0 0 14px; background: white; border: 1px solid var(--borde); border-radius: 12px; box-shadow: 0 8px 24px rgba(13,27,42,.06); padding: 16px; }
-    .ficha-vacia { color: var(--gris); font-size: 14px; display: flex; align-items: center; justify-content: center; min-height: 72px; text-align: center; }
+    /* El contenedor ya no lleva caja: la ficha flotante (.fc) va sin recuadro. */
+    .ficha { margin: 0 0 18px; }
+    .ficha-vacia { color: var(--gris); font-size: 14px; display: flex; align-items: center; justify-content: center; min-height: 72px; text-align: center; background: white; border: 1px dashed var(--borde); border-radius: 12px; padding: 16px; }
     .ficha-card { display: flex; gap: 16px; position: relative; }
     .ficha-foto { width: 108px; height: 142px; object-fit: cover; object-position: center top; border-radius: 9px; flex: none; background: #22384c; border: 2px solid var(--borde); }
     .ficha-foto.vacia { display: flex; align-items: center; justify-content: center; font-weight: 900; color: #647886; font-size: 30px; background: #EEF3F6; }
@@ -273,6 +274,49 @@
     .ficha-pdf a:hover { background: #0d2c48; }
     .ficha-url { display: block; margin-top: 7px; font-size: 11px; color: var(--gris); word-break: break-all; }
     .ficha-nota { margin-top: 10px; font-size: 13px; color: #9A6B00; background: #FFF6E0; border: 1px solid #F2E2AE; border-radius: 7px; padding: 8px 10px; }
+
+    /* ---- Ficha flotante: retrato recortado (sin fondo) a la izquierda que sube,
+       datos a la derecha sin recuadros. El retrato usa el PNG transparente de
+       fotos/parlamento_cut/; si falla, cae a la foto normal (.fc-sin-recorte). ---- */
+    .fc { display: flex; align-items: flex-end; gap: 24px; }
+    .fc-retrato-wrap { position: relative; flex: none; width: 172px; height: 214px; display: flex; align-items: flex-end; justify-content: center; }
+    .fc-retrato-wrap::after { content:""; position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:72%; height:18px; border-radius:50%; background: radial-gradient(ellipse at center, rgba(13,27,42,.20), rgba(13,27,42,0) 70%); }
+    .fc-retrato { position: relative; max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(13,27,42,.20)); }
+    .fc-retrato.fc-sin-recorte { border-radius: 10px; }
+    .fc-datos { flex: 1; min-width: 0; padding-bottom: 6px; }
+    .fc-nombre { font-family:'Space Grotesk',sans-serif; font-weight: 700; font-size: 26px; line-height: 1.12; letter-spacing:-.01em; color:#0D1B2A; }
+    .fc-grupo { font-weight: 700; font-size: 14.5px; margin-top: 3px; }
+    .fc-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 800; margin-top: 9px; }
+    .fc-stats { display: flex; flex-wrap: wrap; gap: 4px 0; margin-top: 15px; }
+    .fc-stat { position: relative; padding: 2px 20px 2px 0; }
+    .fc-stat + .fc-stat { padding-left: 20px; }
+    .fc-stat + .fc-stat::before { content:""; position:absolute; left:0; top:5px; bottom:5px; width:1px; background: var(--borde); }
+    .fc-stat .k { font-size: 10.5px; letter-spacing:.05em; text-transform: uppercase; color: var(--gris); font-weight: 800; }
+    .fc-stat .v { font-family:'Space Grotesk',sans-serif; font-weight: 700; font-size: 19px; color:#0D1B2A; margin-top: 1px; line-height:1.1; font-variant-numeric: tabular-nums; }
+    .fc-pdf { margin-top: 17px; }
+    .fc-pdf a { color:#123A5D; font-weight: 800; text-decoration: none; font-size: 13px; border-bottom: 2px solid var(--borde); padding-bottom: 1px; }
+    .fc-pdf a:hover { border-color: currentColor; }
+    .fc-url { font-size: 12px; color: var(--gris); }
+    /* transición abajo -> arriba con leve stagger de los datos */
+    .fc .fc-retrato { opacity:0; transform: translateY(28px); transition: opacity .55s cubic-bezier(.2,.7,.2,1), transform .55s cubic-bezier(.2,.7,.2,1); }
+    .fc .fc-datos > * { opacity:0; transform: translateY(13px); transition: opacity .5s ease, transform .5s ease; }
+    .fc.show .fc-retrato { opacity:1; transform: translateY(0); }
+    .fc.show .fc-datos > * { opacity:1; transform: translateY(0); }
+    .fc.show .fc-nombre{transition-delay:.08s;} .fc.show .fc-grupo{transition-delay:.14s;}
+    .fc.show .fc-badge{transition-delay:.20s;} .fc.show .fc-stats{transition-delay:.26s;} .fc.show .fc-pdf{transition-delay:.32s;}
+    @media (prefers-reduced-motion: reduce){ .fc .fc-retrato, .fc .fc-datos > *{ transition:none !important; opacity:1 !important; transform:none !important; } }
+    /* móvil: apilar (retrato centrado arriba, datos debajo, stats en rejilla sin divisores) */
+    @media (max-width: 620px){
+      .fc { flex-direction: column; align-items: center; gap: 2px; }
+      .fc-retrato-wrap { width: auto; height: 188px; }
+      .fc-retrato-wrap::after { bottom:2px; }
+      .fc-datos { width: 100%; padding-bottom: 0; }
+      .fc-nombre { font-size: 21px; }
+      .fc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 13px 20px; margin-top: 14px; }
+      .fc-stat { padding: 0; }
+      .fc-stat + .fc-stat { padding-left: 0; }
+      .fc-stat + .fc-stat::before { display: none; }
+    }
     @media (max-width: 620px) { .ficha-card { flex-direction: column; } .ficha-foto { width: 96px; height: 126px; } }
 
     /* ---- Capa móvil: lista tocable que sustituye al arco en U ----
@@ -385,6 +429,8 @@ const L = window.LAYOUT;
 // Fotos servidas desde Supabase Storage (bucket publico cargos-publicos).
 // Proxy: FOTOS[diputado_id] -> URL publica, sin cambiar los usos existentes.
 const SB_FOTOS_PARL = 'https://kdpsjutsgvghdtzoskkg.supabase.co/storage/v1/object/public/cargos-publicos/fotos/parlamento/';
+// Retratos recortados (fondo transparente) para la ficha flotante.
+const SB_FOTOS_CUT = 'https://kdpsjutsgvghdtzoskkg.supabase.co/storage/v1/object/public/cargos-publicos/fotos/parlamento_cut/';
 const FOTOS = new Proxy({}, {
   get: (_, id) => (typeof id === 'string' && /^\d+$/.test(id)) ? SB_FOTOS_PARL + id + '.png' : undefined
 });
@@ -621,40 +667,45 @@ const CARGO_CAMARA = {
 };
 
 function pintarFicha(d) {
-  const foto = FOTOS[d.diputado_id]
-    ? `<img class="ficha-foto" src="${FOTOS[d.diputado_id]}" alt="Foto de ${d.nombre}">`
-    : `<div class="ficha-foto vacia">${iniciales(d.nombre)}</div>`;
-  const grid = d.sin_datos
-    ? `<div class="ficha-grid">
-         <div><div class="k">Circunscripción</div><div class="v" style="font-size:15px">${d.circunscripcion}</div></div>
-         <div><div class="k">Inmuebles</div><div class="v">s/d</div></div>
-         <div><div class="k">Viviendas directas</div><div class="v">s/d</div></div>
-         <div><div class="k">Patrimonio monetario</div><div class="v">s/d</div></div>
+  // Retrato recortado (fondo transparente). Si no cargara, cae a la foto normal.
+  const cut = SB_FOTOS_CUT + d.diputado_id + '.png';
+  const orig = FOTOS[d.diputado_id];
+  const retrato = `<div class="fc-retrato-wrap"><img class="fc-retrato" src="${cut}" alt="Foto de ${d.nombre}"${orig ? ` onerror="this.onerror=null;this.src='${orig}';this.classList.add('fc-sin-recorte')"` : ''}></div>`;
+  const camaraBadge = CARGO_CAMARA[d.diputado_id]
+    ? `<div class="fc-badge" style="color:${d.color}"><span>🏛</span>${CARGO_CAMARA[d.diputado_id]}</div>` : "";
+  const gobBadge = d.cargoGob
+    ? `<div class="fc-badge" style="color:${d.color}"><span>🏛</span>En el Gobierno de Canarias · ${d.cargoGob}</div>` : "";
+  const stats = d.sin_datos
+    ? `<div class="fc-stats">
+         <div class="fc-stat"><div class="k">Circunscripción</div><div class="v" style="font-size:16px">${d.circunscripcion}</div></div>
+         <div class="fc-stat"><div class="k">Inmuebles</div><div class="v">s/d</div></div>
+         <div class="fc-stat"><div class="k">Viviendas</div><div class="v">s/d</div></div>
+         <div class="fc-stat"><div class="k">Patrimonio</div><div class="v">s/d</div></div>
        </div>`
-    : `<div class="ficha-grid">
-         <div><div class="k">Circunscripción</div><div class="v" style="font-size:15px">${d.circunscripcion}</div></div>
-         <div><div class="k">Inmuebles</div><div class="v">${d.inmuebles}</div></div>
-         <div><div class="k">Viviendas directas</div><div class="v">${d.viviendas}</div></div>
-         <div><div class="k">Patrimonio monetario</div><div class="v">${d.patrimonio_fmt}</div></div>
-         <div><div class="k">Deuda</div><div class="v">${d.deuda_fmt}</div></div>
+    : `<div class="fc-stats">
+         <div class="fc-stat"><div class="k">Circunscripción</div><div class="v" style="font-size:16px">${d.circunscripcion}</div></div>
+         <div class="fc-stat"><div class="k">Inmuebles</div><div class="v">${d.inmuebles}</div></div>
+         <div class="fc-stat"><div class="k">Viviendas</div><div class="v">${d.viviendas}</div></div>
+         <div class="fc-stat"><div class="k">Patrimonio</div><div class="v">${d.patrimonio_fmt}</div></div>
+         <div class="fc-stat"><div class="k">Deuda</div><div class="v">${d.deuda_fmt}</div></div>
        </div>`;
   const nota = d.sin_datos
     ? `<div class="ficha-nota">Declaración de bienes presentada, aún <strong>pendiente de extracción OCR</strong>: por eso no se muestran cifras. El documento original está disponible en el enlace.</div>` : "";
   const pdf = d.url_pdf
-    ? `<div class="ficha-pdf"><a href="${d.url_pdf}" target="_blank" rel="noopener">Ver declaración de bienes (PDF) ↗</a><span class="ficha-url">${d.url_pdf}</span></div>`
-    : `<div class="ficha-pdf"><span class="ficha-url">Sin declaración disponible en la fuente.</span></div>`;
-  const logo = LOGOS[d.sigla] ? `<img class="ficha-logo" style="${estiloLogo(d.sigla, 42)}" src="${LOGOS[d.sigla]}" alt="${d.sigla}">` : "";
-  const gobBadge = d.cargoGob
-    ? `<div class="ficha-gob">🏛 En el Gobierno de Canarias · <strong>${d.cargoGob}</strong></div>` : "";
-  const camaraBadge = CARGO_CAMARA[d.diputado_id]
-    ? `<div class="ficha-camara">🏛 <strong>${CARGO_CAMARA[d.diputado_id]}</strong></div>` : "";
-  ficha.html(`<div class="ficha-card" style="border-left:5px solid ${d.color}; padding-left:14px;">
-    <div class="ficha-col">${foto}${logo}</div>
-    <div class="ficha-body">
-      <div class="ficha-nombre">${d.nombre}</div>
-      <div class="ficha-grupo" style="color:${d.color}">${d.grupo}</div>
-      ${camaraBadge}${gobBadge}${grid}${nota}${pdf}
-    </div></div>`);
+    ? `<div class="fc-pdf"><a href="${d.url_pdf}" target="_blank" rel="noopener">Ver declaración de bienes (PDF) ↗</a></div>`
+    : `<div class="fc-pdf"><span class="fc-url">Sin declaración disponible en la fuente.</span></div>`;
+  ficha.html(`<div class="fc" style="--c:${d.color}">
+    ${retrato}
+    <div class="fc-datos">
+      <div class="fc-nombre">${d.nombre}</div>
+      <div class="fc-grupo" style="color:${d.color}">${d.grupo}</div>
+      ${camaraBadge}${gobBadge}${stats}${nota}${pdf}
+    </div>
+  </div>`);
+  // dispara la transición (abajo -> arriba): fuerza el reflow del estado inicial
+  // y luego marca .show, de forma síncrona y fiable (sin depender de rAF).
+  const c = ficha.node().querySelector('.fc');
+  if (c) { void c.offsetWidth; c.classList.add('show'); }
 }
 
 // Lista tocable para movil (el arco en U es ilegible a <=720px). Diputados agrupados
