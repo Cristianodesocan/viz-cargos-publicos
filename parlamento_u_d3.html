@@ -467,6 +467,11 @@ function contador(sel, destino, fmt) {
     });
 }
 
+// ¿el usuario pide reducir el movimiento? Entonces las cifras van directas a su valor final.
+const PREF_REDUCE = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+// Marca de repintado de ficha: si se selecciona otra antes de arrancar la cuenta, la vieja se descarta.
+let fichaSeq = 0;
+
 const L = window.LAYOUT;
 // Fotos servidas desde Supabase Storage (bucket publico cargos-publicos).
 // Proxy: FOTOS[diputado_id] -> URL publica, sin cambiar los usos existentes.
@@ -712,6 +717,8 @@ function pintarFicha(d) {
   // Retrato recortado (fondo transparente). Si no cargara, cae a la foto normal.
   const cut = SB_FOTOS_CUT + d.diputado_id + '.png';
   const orig = FOTOS[d.diputado_id];
+  // Deuda como número para el contador (el dato llega formateado, p. ej. "49.682 €").
+  const deudaNum = parseInt((d.deuda_fmt || '').replace(/[^\d]/g, ''), 10) || 0;
   const retrato = `<div class="fc-retrato-wrap"><img class="fc-retrato" src="${cut}" alt="Foto de ${d.nombre}"${orig ? ` onerror="this.onerror=null;this.src='${orig}';this.classList.add('fc-sin-recorte')"` : ''}></div>`;
   const camaraBadge = CARGO_CAMARA[d.diputado_id]
     ? `<div class="fc-badge" style="color:${d.color}"><span>🏛</span>${CARGO_CAMARA[d.diputado_id]}</div>` : "";
@@ -726,10 +733,10 @@ function pintarFicha(d) {
        </div>`
     : `<div class="fc-stats">
          <div class="fc-stat"><div class="k">Circunscripción</div><div class="v" style="font-size:16px">${d.circunscripcion}</div></div>
-         <div class="fc-stat"><div class="k">Inmuebles</div><div class="v">${d.inmuebles}</div></div>
-         <div class="fc-stat"><div class="k">Viviendas</div><div class="v">${d.viviendas}</div></div>
-         <div class="fc-stat"><div class="k">Patrimonio</div><div class="v">${d.patrimonio_fmt}</div></div>
-         <div class="fc-stat"><div class="k">Deuda</div><div class="v">${d.deuda_fmt}</div></div>
+         <div class="fc-stat"><div class="k">Inmuebles</div><div class="v" data-count="${d.inmuebles}" data-fmt="int">0</div></div>
+         <div class="fc-stat"><div class="k">Viviendas</div><div class="v" data-count="${d.viviendas}" data-fmt="int">0</div></div>
+         <div class="fc-stat"><div class="k">Patrimonio</div><div class="v" data-count="${d.patrimonio}" data-fmt="eur">0 €</div></div>
+         <div class="fc-stat"><div class="k">Deuda</div><div class="v" data-count="${deudaNum}" data-fmt="eur">0 €</div></div>
        </div>`;
   const nota = d.sin_datos
     ? `<div class="ficha-nota">Declaración de bienes presentada, aún <strong>pendiente de extracción OCR</strong>: por eso no se muestran cifras. El documento original está disponible en el enlace.</div>` : "";
@@ -748,6 +755,21 @@ function pintarFicha(d) {
   // y luego marca .show, de forma síncrona y fiable (sin depender de rAF).
   const c = ficha.node().querySelector('.fc');
   if (c) { void c.offsetWidth; c.classList.add('show'); }
+
+  // Contador de las cifras (Inmuebles, Viviendas, Patrimonio, Deuda): suben desde 0
+  // hasta su valor, sincronizadas con la entrada de los datos (~.26s de retardo en el
+  // CSS). Una marca de secuencia descarta la cuenta si se elige otra ficha antes de arrancar.
+  const seq = ++fichaSeq;
+  const cifras = c ? [...c.querySelectorAll('.fc-stat .v[data-count]')] : [];
+  const lanzar = () => cifras.forEach(nodo => {
+    const destino = +nodo.dataset.count;
+    const fmt = nodo.dataset.fmt === 'eur' ? fmtEuros : fmtNum;
+    if (PREF_REDUCE) { nodo.__val = destino; nodo.innerHTML = fmt(destino); return; }
+    nodo.__val = 0;                          // arranca desde 0
+    contador(d3.select(nodo), destino, fmt); // (cae a valor final si la pestaña está oculta)
+  });
+  if (PREF_REDUCE) lanzar();
+  else setTimeout(() => { if (seq === fichaSeq) lanzar(); }, 300);
 }
 
 // Color de texto legible (blanco u oscuro) según la luminancia del color de fondo:
