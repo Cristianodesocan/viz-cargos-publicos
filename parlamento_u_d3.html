@@ -137,7 +137,7 @@
     /* KPIs como tres ventanas entre la ficha y el gráfico */
     .kpis {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
       margin: 0 0 14px;
     }
@@ -417,7 +417,6 @@
   <section class="kpis" aria-live="polite">
     <div class="kpi"><div class="k">Parlamentarias en activo</div><div id="stat-total" class="v">0</div></div>
     <div class="kpi"><div class="k">Con conflicto de intereses</div><div id="stat-muted" class="v">0</div></div>
-    <div class="kpi"><div class="k">Salario anual (2025)</div><div id="stat-salario" class="v">0</div><div id="salario-sub" class="kpi-sub"></div></div>
   </section>
   <div class="controles" role="group" aria-label="Modo de visualización">
     <button class="activo" data-mode="todos">Todos</button>
@@ -443,7 +442,6 @@ const tooltip = d3.select("#tooltip");
 const ficha = d3.select("#ficha");
 const statTotal = d3.select("#stat-total");
 const statMuted = d3.select("#stat-muted");
-const statSalario = d3.select("#stat-salario");
 let modo = "todos";
 
 // Total del parlamento (denominador de los porcentajes de conflicto de intereses)
@@ -633,37 +631,14 @@ function apagado(d) {
   if (modo === "inmuebles") return d.destaca_inmuebles;
   return false;
 }
-// Grupo cuyos salarios suma el contador según el modo:
-//  · todos      → todo el parlamento (total)
-//  · viviendas  → quienes tienen 3+ viviendas (grupo señalado)
-//  · inmuebles  → quienes tienen 3+ inmuebles (grupo señalado)
-function grupoSalario() {
-  if (modo === "viviendas") return datosU.filter(d => d.destaca_viviendas);
-  if (modo === "inmuebles") return datosU.filter(d => d.destaca_inmuebles);
-  return datosU;
-}
-function subFiltro() {
-  return modo === "viviendas" ? "Con 3+ viviendas"
-       : modo === "inmuebles" ? "Con 3+ inmuebles"
-       : "Total del parlamento";
-}
-// Actualiza el KPI de salario con su contador y un subtítulo que aclara a qué se refiere.
-function mostrarSalario(valor, sub) {
-  d3.select("#salario-sub").text(sub);
-  const nodo = statSalario.node();
-  if (valor == null) { d3.select(nodo).interrupt(); nodo.__val = 0; nodo.innerHTML = "s/d"; return; }
-  contador(statSalario, valor, fmtEuros);
-}
-// Devuelve el KPI de salario al agregado del filtro actual (total o grupo señalado).
-function salarioDelFiltro() {
-  mostrarSalario(d3.sum(grupoSalario(), d => d.salario || 0), subFiltro());
-}
+// El salario anual dejó de ser un KPI agregado: ahora se muestra por diputado/a en su
+// ficha (ver pintarFicha). Los "Salario medio" por grupo se conservan en el tooltip de
+// partido (escritorio) y en el resumen de cada panel móvil.
 function actualizar(nuevoModo) {
   modo = nuevoModo;
   d3.selectAll("button").classed("activo", function() { return this.dataset.mode === modo; });
   const r = resumen[modo];
   contador(statMuted, r.apagados, fmtPct);
-  salarioDelFiltro();
   seats.classed("apagado", d => apagado(d));
   // mismo criterio de atenuación en los paneles móviles
   document.querySelectorAll('#lista-movil .pm-burbuja').forEach(b => {
@@ -701,7 +676,6 @@ function seleccionar(d) {
   document.querySelectorAll('#lista-movil .pm-burbuja').forEach(b =>
     b.classList.toggle('sel', b.dataset.id === d.diputado_id));
   pintarFicha(d);
-  mostrarSalario(d.salario, d.cargoGob ? `${d.nombre} · en el Gobierno` : d.nombre);
   if (document.documentElement.classList.contains('embed')) document.getElementById('ficha').scrollIntoView();
 }
 
@@ -720,6 +694,11 @@ function pintarFicha(d) {
   const orig = FOTOS[d.diputado_id];
   // Deuda como número para el contador (el dato llega formateado, p. ej. "49.682 €").
   const deudaNum = parseInt((d.deuda_fmt || '').replace(/[^\d]/g, ''), 10) || 0;
+  // Salario anual (antes era un KPI agregado; ahora va por diputado/a en la ficha):
+  // contador en € o "s/d" si no consta. Para cargos del Gobierno es su retribución de alto cargo.
+  const salarioV = (d.salario == null)
+    ? `<div class="v">s/d</div>`
+    : `<div class="v" data-count="${d.salario}" data-fmt="eur">0 €</div>`;
   const retrato = `<div class="fc-retrato-wrap"><img class="fc-retrato" src="${cut}" alt="Foto de ${d.nombre}"${orig ? ` onerror="this.onerror=null;this.src='${orig}';this.classList.add('fc-sin-recorte')"` : ''}></div>`;
   const camaraBadge = CARGO_CAMARA[d.diputado_id]
     ? `<div class="fc-badge" style="color:${d.color}"><span>🏛</span>${CARGO_CAMARA[d.diputado_id]}</div>` : "";
@@ -731,12 +710,14 @@ function pintarFicha(d) {
          <div class="fc-stat"><div class="k">Inmuebles</div><div class="v">s/d</div></div>
          <div class="fc-stat"><div class="k">Viviendas</div><div class="v">s/d</div></div>
          <div class="fc-stat"><div class="k">Patrimonio</div><div class="v">s/d</div></div>
+         <div class="fc-stat"><div class="k">Salario anual</div>${salarioV}</div>
        </div>`
     : `<div class="fc-stats">
          <div class="fc-stat"><div class="k">Circunscripción</div><div class="v" style="font-size:16px">${d.circunscripcion}</div></div>
          <div class="fc-stat"><div class="k">Inmuebles</div><div class="v" data-count="${d.inmuebles}" data-fmt="int">0</div></div>
          <div class="fc-stat"><div class="k">Viviendas</div><div class="v" data-count="${d.viviendas}" data-fmt="int">0</div></div>
          <div class="fc-stat"><div class="k">Patrimonio</div><div class="v" data-count="${d.patrimonio}" data-fmt="eur">0 €</div></div>
+         <div class="fc-stat"><div class="k">Salario anual</div>${salarioV}</div>
          <div class="fc-stat"><div class="k">Deuda</div><div class="v" data-count="${deudaNum}" data-fmt="eur">0 €</div></div>
        </div>`;
   const nota = d.sin_datos
