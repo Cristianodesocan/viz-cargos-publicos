@@ -328,7 +328,10 @@
        contiene las burbujas (foto + aro de partido), cada una con el mismo clic->ficha
        (seleccionar) y el mismo filtrado del arco. En escritorio el arco "en U" no cambia. */
     .lista-movil { display: none; }
-    @media (max-width: 720px) {
+    /* Paneles tocables cuando el arco encogería demasiado: por ancho (<=720px) O en cualquier
+       dispositivo TÁCTIL hasta 1100px (iPad vertical/horizontal, etc.), donde las burbujas del
+       arco caen a ~20-25px de diámetro. Con puntero de ratón se conserva el arco "en U". */
+    @media (max-width: 720px), (pointer: coarse) and (max-width: 1100px) {
       #chart { display: none; }
       .lista-movil { display: block; padding: 4px 0 2px; }
     }
