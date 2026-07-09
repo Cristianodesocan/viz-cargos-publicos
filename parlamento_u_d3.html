@@ -319,41 +319,83 @@
     }
     @media (max-width: 620px) { .ficha-card { flex-direction: column; } .ficha-foto { width: 96px; height: 126px; } }
 
-    /* ---- Capa móvil: lista tocable que sustituye al arco en U ----
+    /* ---- Capa móvil: paneles verticales por grupo parlamentario (estilo altos cargos) ----
        A <=720px el arco (SVG 1180x820) encoge tanto que las burbujas quedan a ~9px:
-       ilegibles e intocables. Debajo de ese ancho ocultamos el SVG y mostramos una
-       lista agrupada por grupo parlamentario, con fotos de 48px (objetivo tactil) y
-       el mismo clic->ficha y filtrado. En escritorio el arco se mantiene intacto. */
+       ilegibles e intocables. Debajo de ese ancho ocultamos el SVG y apilamos en vertical
+       un panel por grupo: cabecera en el color PLENO del partido (logo + nombre + nº de
+       escaños, clicable -> resumen del grupo) y cuerpo con un tinte SUAVE de ese color que
+       contiene las burbujas (foto + aro de partido), cada una con el mismo clic->ficha
+       (seleccionar) y el mismo filtrado del arco. En escritorio el arco "en U" no cambia. */
     .lista-movil { display: none; }
     @media (max-width: 720px) {
       #chart { display: none; }
-      .lista-movil { display: block; }
+      .lista-movil { display: block; padding: 4px 0 2px; }
     }
-    .lm-grupo { display: flex; align-items: center; gap: 8px; margin: 20px 2px 8px;
-      font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px;
-      color: #0D1B2A; text-transform: uppercase; letter-spacing: .02em; }
-    .lm-grupo:first-child { margin-top: 4px; }
-    .lm-grupo-dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
-    .lm-grupo-nom { flex: 1; min-width: 0; }
-    .lm-grupo-n { font-size: 12px; color: #5A6B77; font-weight: 600; }
-    .lm-items { display: flex; flex-direction: column; gap: 7px; }
-    .lm-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
-      background: #fff; border: 1px solid #E1EAF0; border-left: 4px solid var(--c, #ccc);
-      border-radius: 12px; padding: 8px 10px; min-height: 62px; cursor: pointer;
-      font: inherit; color: inherit; -webkit-tap-highlight-color: transparent;
-      transition: background .12s ease, box-shadow .12s ease, opacity .15s ease; }
-    .lm-item:active { background: #F1F6F9; }
-    .lm-item.sel { box-shadow: 0 0 0 2px var(--c, #123A5D) inset; }
-    .lm-item.lm-apagado { opacity: .4; }
-    .lm-item.lm-apagado .lm-foto { filter: grayscale(1); }
-    .lm-foto { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex: none;
-      border: 2px solid var(--c, #ccc); background: #EEF3F6; box-sizing: border-box; }
-    .lm-foto.vacia { display: inline-flex; align-items: center; justify-content: center;
-      font-weight: 800; color: #5A6B77; font-size: 14px; }
-    .lm-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .lm-nombre { font-weight: 700; font-size: 14.5px; color: #0D1B2A; line-height: 1.2; }
-    .lm-meta { font-size: 12px; color: #5A6B77; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .lm-chevron { color: #B7C2CB; font-size: 22px; line-height: 1; flex: none; }
+    /* panel de grupo */
+    .pm-panel { border: 1px solid var(--borde); border-radius: 16px; overflow: hidden;
+      background: #fff; box-shadow: 0 4px 16px rgba(13, 27, 42, .06); margin: 0 0 15px;
+      transition: opacity .18s ease; }
+    .pm-panel:last-child { margin-bottom: 4px; }
+    /* al abrir un grupo, los demás se atenúan (aísla el grupo) */
+    .lista-movil.hay-abierto .pm-panel:not(.abierto) { opacity: .5; }
+    /* cabecera clicable en color pleno del partido */
+    .pm-head { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+      padding: 12px 14px; background: var(--c, #123A5D); color: var(--ct, #fff); border: 0;
+      cursor: pointer; font: inherit; -webkit-tap-highlight-color: transparent;
+      transition: filter .12s ease; }
+    .pm-head:active { filter: brightness(.94); }
+    .pm-head-logo { width: 36px; height: 36px; border-radius: 9px; background: #fff; flex: none;
+      display: inline-flex; align-items: center; justify-content: center; padding: 4px;
+      box-shadow: 0 1px 4px rgba(13, 27, 42, .22); }
+    .pm-head-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .pm-head-info { flex: 1; min-width: 0; }
+    .pm-head-nom { display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+      font-size: 14px; line-height: 1.16; }
+    .pm-head-sub { display: block; font-size: 11px; font-weight: 600; opacity: .85; margin-top: 3px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pm-head-n { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px;
+      background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .34);
+      border-radius: 99px; padding: 3px 11px; flex: none; }
+    /* si el color del partido es claro, el texto va oscuro: el chip también se oscurece */
+    .pm-head.txt-dark .pm-head-n { background: rgba(13, 27, 42, .09); border-color: rgba(13, 27, 42, .18); }
+    .pm-head-chevron { flex: none; font-size: 13px; line-height: 1; opacity: .9;
+      transition: transform .22s ease; }
+    .pm-panel.abierto .pm-head-chevron { transform: rotate(180deg); }
+    /* resumen del grupo (acordeón bajo la cabecera) */
+    .pm-resumen { display: none; grid-template-columns: 1fr 1fr; gap: 11px 14px;
+      background: var(--tint, #F4F7FA); border-bottom: 1px solid var(--borde); padding: 13px 15px; }
+    .pm-panel.abierto .pm-resumen { display: grid; }
+    .pm-r-item .k { font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+      font-weight: 800; color: var(--gris); }
+    .pm-r-item .v { font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 15px;
+      color: #1A2F45; line-height: 1.1; margin-top: 3px; font-variant-numeric: tabular-nums; }
+    /* cuerpo con tinte suave del color del partido */
+    .pm-body { background: var(--tint, #F4F7FA); padding: 15px 12px 17px;
+      display: flex; flex-wrap: wrap; gap: 15px 6px; }
+    /* burbuja de diputado/a */
+    .pm-burbuja { width: 84px; display: flex; flex-direction: column; align-items: center; gap: 7px;
+      cursor: pointer; background: none; border: 0; padding: 0; font: inherit; color: inherit;
+      -webkit-tap-highlight-color: transparent; transition: transform .14s ease, opacity .18s ease; }
+    .pm-burbuja:active { transform: scale(.95); }
+    .pm-foto-wrap { position: relative; line-height: 0; }
+    .pm-foto { width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+      object-position: center top; border: 3px solid var(--c, #ccc); background: #22384c;
+      box-shadow: 0 2px 8px rgba(13, 27, 42, .16); box-sizing: border-box; }
+    .pm-foto.vacia { display: inline-flex; align-items: center; justify-content: center;
+      background: #EEF3F6; color: #5A6B77; font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 15px; }
+    .pm-badge { position: absolute; right: -3px; bottom: -3px; width: 22px; height: 22px;
+      border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(13, 27, 42, .28);
+      display: flex; align-items: center; justify-content: center; font-size: 11px; }
+    .pm-cap { text-align: center; line-height: 1.16; }
+    .pm-nom { display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 600;
+      font-size: 10.5px; color: #1A2F45; }
+    .pm-meta { display: block; font-size: 9px; color: #647886; margin-top: 2px; }
+    /* patrimonio monetario declarado, destacado bajo la circunscripción */
+    .pm-patr { display: block; margin-top: 3px; font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 10px; color: #123A5D; font-variant-numeric: tabular-nums; }
+    .pm-burbuja.sel .pm-foto { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #0D1B2A; }
+    .pm-burbuja.pm-apagado { opacity: .28; filter: grayscale(.7); }
   </style>
 <style>/* modo incrustado en el shell de pestañas */
   html.embed #ficha:has(.ficha-vacia){display:none;}   /* no mostrar el placeholder vacío: deja ver antes el gráfico */
@@ -365,7 +407,7 @@
   <div class="cabecera">
     <div>
       <h1>Parlamento de Canarias <em>en&nbsp;U</em></h1>
-      <p class="sub">Visualización interactiva de la muestra de declaraciones patrimoniales en una planta 2D del arco parlamentario. Los 70 diputados y diputadas en activo de la XI Legislatura, dispuestos en herradura con las dos bancadas enfrentadas -gobierno y oposición-. Cada burbuja lleva su foto oficial. Toca (o pasa el cursor sobre) cada diputado o diputada para abrir su ficha con el enlace a la declaración de bienes. En móvil se muestran en lista agrupada por grupo parlamentario.</p>
+      <p class="sub">Visualización interactiva de la muestra de declaraciones patrimoniales en una planta 2D del arco parlamentario. Los 70 diputados y diputadas en activo de la XI Legislatura, dispuestos en herradura con las dos bancadas enfrentadas -gobierno y oposición-. Cada burbuja lleva su foto oficial. Toca (o pasa el cursor sobre) cada diputado o diputada para abrir su ficha con el enlace a la declaración de bienes. En móvil se muestran en paneles verticales por grupo parlamentario, con la cabecera en el color de cada partido.</p>
     </div>
   </div>
   <section class="ficha" id="ficha" aria-live="polite">
@@ -617,10 +659,10 @@ function actualizar(nuevoModo) {
   contador(statMuted, r.apagados, fmtPct);
   salarioDelFiltro();
   seats.classed("apagado", d => apagado(d));
-  // mismo criterio de atenuación en la lista móvil
-  document.querySelectorAll('#lista-movil .lm-item').forEach(b => {
+  // mismo criterio de atenuación en los paneles móviles
+  document.querySelectorAll('#lista-movil .pm-burbuja').forEach(b => {
     const d = datosU.find(x => x.diputado_id === b.dataset.id);
-    b.classList.toggle('lm-apagado', d ? apagado(d) : false);
+    b.classList.toggle('pm-apagado', d ? apagado(d) : false);
   });
 }
 
@@ -650,7 +692,7 @@ seats.on("mousemove", (event, d) => {
 // incrustado en el shell, lleva la página a la ficha (scrollIntoView parcheado; ver final).
 function seleccionar(d) {
   seats.classed("seleccionado", s => s.diputado_id === d.diputado_id);
-  document.querySelectorAll('#lista-movil .lm-item').forEach(b =>
+  document.querySelectorAll('#lista-movil .pm-burbuja').forEach(b =>
     b.classList.toggle('sel', b.dataset.id === d.diputado_id));
   pintarFicha(d);
   mostrarSalario(d.salario, d.cargoGob ? `${d.nombre} · en el Gobierno` : d.nombre);
@@ -708,9 +750,24 @@ function pintarFicha(d) {
   if (c) { void c.offsetWidth; c.classList.add('show'); }
 }
 
-// Lista tocable para movil (el arco en U es ilegible a <=720px). Diputados agrupados
-// por grupo parlamentario (orden por tamano de grupo), con foto de 48px, el mismo
-// clic->ficha (seleccionar) y el mismo criterio de atenuacion del filtro.
+// Color de texto legible (blanco u oscuro) según la luminancia del color de fondo:
+// PP/PSOE/ASG/NC-bc/Mixto -> texto blanco; CC (amarillo) y VOX (verde claro) -> texto oscuro.
+function textoSobre(hex) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  const L = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return L > 0.62 ? '#0D1B2A' : '#ffffff';
+}
+// Tinte translúcido del color del partido para el fondo del cuerpo del panel.
+function tintaRGBA(hex, a) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// Capa móvil (<=720px): un panel por grupo parlamentario (estilo altos cargos). El arco
+// en U es ilegible a ese ancho. Cada grupo es un panel con la cabecera en el color PLENO
+// del partido (logo + nombre + nº escaños, clicable -> resumen del grupo) y el cuerpo con
+// un tinte suave de ese color y las burbujas (foto + aro), cada una con el mismo
+// clic->ficha (seleccionar) y el mismo criterio de atenuación del filtro que el arco.
 function pintarListaMovil() {
   const cont = document.getElementById('lista-movil');
   if (!cont) return;
@@ -720,29 +777,77 @@ function pintarListaMovil() {
   let html = '';
   orden.forEach(g => {
     const arr = grupos[g].slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-    html += `<div class="lm-grupo"><span class="lm-grupo-dot" style="background:${arr[0].color}"></span>`
-          + `<span class="lm-grupo-nom">${g}</span><span class="lm-grupo-n">${arr.length}</span></div>`
-          + `<div class="lm-items">`;
+    const color = arr[0].color, sigla = arr[0].sigla;
+    const ct = textoSobre(color), tint = tintaRGBA(color, .10);
+    const info = infoPartido.get(g) || {};
+    const pct = Math.round(arr.length / TOTAL_PARLAMENTO * 100);
+    const logo = LOGOS[sigla]
+      ? `<span class="pm-head-logo"><img style="${estiloLogo(sigla, 26)}" src="${LOGOS[sigla]}" alt="${sigla}"></span>` : '';
+    html += `<div class="pm-panel" style="--c:${color};--ct:${ct};--tint:${tint}">`
+          // cabecera clicable -> resumen del grupo
+          + `<button class="pm-head${ct === '#0D1B2A' ? ' txt-dark' : ''}" data-grupo="${g}" aria-expanded="false">`
+          +   logo
+          +   `<span class="pm-head-info"><span class="pm-head-nom">${g}</span>`
+          +     `<span class="pm-head-sub">${sigla} · ${pct}% del parlamento</span></span>`
+          +   `<span class="pm-head-n">${arr.length}</span>`
+          +   `<span class="pm-head-chevron" aria-hidden="true">▾</span>`
+          + `</button>`
+          // resumen (acordeón): agregados del grupo (mismos datos que el hover de escritorio)
+          + `<div class="pm-resumen">`
+          +   `<div class="pm-r-item"><div class="k">Escaños</div><div class="v">${arr.length}</div></div>`
+          +   `<div class="pm-r-item"><div class="k">% del parlamento</div><div class="v">${pct}%</div></div>`
+          +   `<div class="pm-r-item"><div class="k">Con 3+ viviendas</div><div class="v">${info.nViv ?? 0}</div></div>`
+          +   `<div class="pm-r-item"><div class="k">Con 3+ inmuebles</div><div class="v">${info.nInm ?? 0}</div></div>`
+          +   `<div class="pm-r-item"><div class="k">Patrimonio medio</div><div class="v">${eur(info.patrMedia)}</div></div>`
+          +   `<div class="pm-r-item"><div class="k">Salario medio</div><div class="v">${eur(info.ingMedia)}</div></div>`
+          + `</div>`
+          // cuerpo: burbujas con tinte suave del color del partido
+          + `<div class="pm-body">`;
     arr.forEach(d => {
       const foto = FOTOS[d.diputado_id]
-        ? `<img class="lm-foto" src="${FOTOS[d.diputado_id]}" alt="" loading="lazy" style="border-color:${d.color}">`
-        : `<span class="lm-foto vacia" style="border-color:${d.color}">${iniciales(d.nombre)}</span>`;
-      const camara = CARGO_CAMARA[d.diputado_id] ? ` <span title="${CARGO_CAMARA[d.diputado_id]}">🏛</span>` : '';
-      html += `<button class="lm-item" data-id="${d.diputado_id}" style="--c:${d.color}">`
-            + foto
-            + `<span class="lm-info"><span class="lm-nombre">${d.nombre}${camara}</span>`
-            + `<span class="lm-meta">${d.circunscripcion} · ${d.patrimonio_fmt}</span></span>`
-            + `<span class="lm-chevron" aria-hidden="true">›</span></button>`;
+        ? `<img class="pm-foto" src="${FOTOS[d.diputado_id]}" alt="" loading="lazy">`
+        : `<span class="pm-foto vacia">${iniciales(d.nombre)}</span>`;
+      const badge = CARGO_CAMARA[d.diputado_id]
+        ? `<span class="pm-badge" title="${CARGO_CAMARA[d.diputado_id]}">🏛</span>` : '';
+      html += `<button class="pm-burbuja" data-id="${d.diputado_id}" title="${d.nombre}">`
+            + `<span class="pm-foto-wrap">${foto}${badge}</span>`
+            + `<span class="pm-cap"><span class="pm-nom">${d.nombre}</span>`
+            +   `<span class="pm-meta">${d.circunscripcion}</span>`
+            +   `<span class="pm-patr">${d.sin_datos ? 's/d' : d.patrimonio_fmt}</span></span>`
+            + `</button>`;
     });
-    html += `</div>`;
+    html += `</div></div>`;
   });
   cont.innerHTML = html;
-  cont.querySelectorAll('.lm-item').forEach(btn => {
+  // clic en burbuja -> ficha (misma función que el arco de escritorio)
+  cont.querySelectorAll('.pm-burbuja').forEach(btn => {
     btn.addEventListener('click', () => {
       const d = datosU.find(x => x.diputado_id === btn.dataset.id);
       if (d) seleccionar(d);
     });
   });
+  // clic en cabecera -> despliega/oculta el resumen del grupo (uno abierto a la vez;
+  // los demás paneles se atenúan para aislar el grupo enfocado)
+  cont.querySelectorAll('.pm-head').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panel = btn.closest('.pm-panel');
+      const abrir = !panel.classList.contains('abierto');
+      cont.querySelectorAll('.pm-panel.abierto').forEach(p => {
+        p.classList.remove('abierto');
+        p.querySelector('.pm-head').setAttribute('aria-expanded', 'false');
+      });
+      panel.classList.toggle('abierto', abrir);
+      btn.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+      cont.classList.toggle('hay-abierto', abrir);
+    });
+  });
+  // Abre por defecto el resumen del grupo mayoritario (primer panel, el más grande),
+  // sin atenuar los demás: sirve de ejemplo y hace descubrible el acordeón.
+  const primerPanel = cont.querySelector('.pm-panel');
+  if (primerPanel) {
+    primerPanel.classList.add('abierto');
+    primerPanel.querySelector('.pm-head').setAttribute('aria-expanded', 'true');
+  }
 }
 
 d3.selectAll("button").on("click", function() { actualizar(this.dataset.mode); });
