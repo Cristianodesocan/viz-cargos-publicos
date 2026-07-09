@@ -68,33 +68,18 @@
   section.bloque{margin-bottom:54px;}
 
   /* ---------- 2. CUADRO RESUMEN (ficha) ---------- */
-  .ficha{background:#fff;border:1px solid var(--border-soft);border-radius:16px;
-    box-shadow:0 2px 16px rgba(13,27,42,.08);padding:22px;scroll-margin-top:84px;
-    border-top:4px solid var(--teal);}
+  /* Ficha flotante: sin caja; retrato recortado (sin fondo) a la izquierda + datos sin recuadro */
+  .ficha{padding:2px;scroll-margin-top:84px;}
   .ficha-vacia{color:var(--text-muted);font-size:14.5px;display:flex;align-items:center;
-    justify-content:center;gap:12px;min-height:130px;text-align:center;flex-direction:column;}
+    justify-content:center;gap:12px;min-height:130px;text-align:center;flex-direction:column;
+    background:#fff;border:1px dashed var(--border-soft);border-radius:16px;padding:22px;}
   .ficha-vacia svg{opacity:.5;}
-  .ficha-card{display:flex;gap:22px;}
-  /* Entrada de la ficha: la foto y los datos aparecen (abajo->arriba), escalonados,
-     mientras las cifras cuentan. Se activa con .show tras pintar (ver pintarFicha). */
-  .ficha-card .ficha-foto{opacity:0;transform:translateY(22px);
-    transition:opacity .5s cubic-bezier(.2,.7,.2,1),transform .5s cubic-bezier(.2,.7,.2,1);}
-  .ficha-card .ficha-body>*{opacity:0;transform:translateY(12px);
-    transition:opacity .45s ease,transform .45s ease;}
-  .ficha-card.show .ficha-foto{opacity:1;transform:none;}
-  .ficha-card.show .ficha-body>*{opacity:1;transform:none;}
-  .ficha-card.show .ficha-head{transition-delay:.06s;}
-  .ficha-card.show .ficha-grid{transition-delay:.15s;}
-  .ficha-card.show .doscol{transition-delay:.24s;}
-  .ficha-card.show .ficha-pdf{transition-delay:.30s;}
-  .ficha-card.show .ficha-nota{transition-delay:.32s;}
-  @media(prefers-reduced-motion:reduce){
-    .ficha-card .ficha-foto,.ficha-card .ficha-body>*{transition:none!important;opacity:1!important;transform:none!important;}
-  }
-  .ficha-foto{width:120px;height:150px;object-fit:cover;object-position:center top;
-    border-radius:12px;flex:none;background:#22384c;border:3px solid var(--border-soft);}
+  .ficha-card{display:flex;gap:24px;align-items:flex-start;}
+  .fc-retrato-wrap{position:relative;flex:none;width:168px;display:flex;align-items:flex-start;justify-content:center;}
+  .fc-retrato{max-width:100%;object-fit:contain;filter:drop-shadow(0 10px 15px rgba(13,27,42,.18));border-radius:0 0 14px 14px;}
+  .fc-retrato.fc-sin-recorte{width:120px;height:150px;object-fit:cover;object-position:center top;border-radius:12px;border:3px solid var(--border-soft);background:#22384c;filter:none;}
   .ficha-foto.vacia{display:flex;align-items:center;justify-content:center;font-weight:800;
-    color:var(--text-muted);font-size:34px;background:#EEF3F6;font-family:'Space Grotesk';}
+    color:var(--text-muted);font-size:34px;background:#EEF3F6;font-family:'Space Grotesk';width:120px;height:150px;border-radius:12px;flex:none;}
   .ficha-body{flex:1;min-width:0;}
   .ficha-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
   .ficha-nombre{font-family:'Space Grotesk';font-size:1.55rem;font-weight:700;line-height:1.12;color:var(--navy-dark);}
@@ -131,7 +116,14 @@
   .ficha-pdf a:hover{transform:translateY(-1px);}
   .ficha-nota{margin-top:14px;font-size:12.5px;color:#8A6D1B;background:#FFF9E9;border:1px solid #F2E2AE;
     border-radius:9px;padding:10px 12px;line-height:1.5;}
-  @media(max-width:720px){.ficha-card{flex-direction:column;}.doscol{grid-template-columns:1fr;}}
+  /* transición de aparición (abajo -> arriba) del retrato y los datos */
+  .ficha-card .fc-retrato{opacity:0;transform:translateY(24px);transition:opacity .5s cubic-bezier(.2,.7,.2,1),transform .5s cubic-bezier(.2,.7,.2,1);}
+  .ficha-card .ficha-body>*{opacity:0;transform:translateY(12px);transition:opacity .45s ease,transform .45s ease;}
+  .ficha-card.show .fc-retrato{opacity:1;transform:translateY(0);}
+  .ficha-card.show .ficha-body>*{opacity:1;transform:translateY(0);}
+  .ficha-card.show .ficha-grid{transition-delay:.14s;} .ficha-card.show .doscol{transition-delay:.22s;} .ficha-card.show .ficha-pdf{transition-delay:.28s;}
+  @media(prefers-reduced-motion:reduce){.ficha-card .fc-retrato,.ficha-card .ficha-body>*{transition:none!important;opacity:1!important;transform:none!important;}}
+  @media(max-width:720px){.ficha-card{flex-direction:column;align-items:center;}.doscol{grid-template-columns:1fr;}.fc-retrato-wrap{width:auto;max-width:200px;}.ficha-body{width:100%;}}
 
   /* ---------- controles / filtro partido ---------- */
   .controles{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;align-items:center;}
@@ -478,8 +470,10 @@ const ocultarTT = ()=>TT.style('opacity',0);
 /* ============ 2. FICHA (cuadro resumen) ============ */
 function pintarFicha(d){
   const pc=colorP(d.sigla), pn=nombreP(d.sigla);
-  const foto = d.foto ? `<img class="ficha-foto" src="${d.foto}" alt="${d.nombre}">`
-                      : `<div class="ficha-foto vacia">${iniciales(d.nombre)}</div>`;
+  const cut = SB_FOTOS_ALTOS_CUT + d.ou + '.png';
+  const retrato = d.foto
+    ? `<div class="fc-retrato-wrap"><img class="fc-retrato" src="${cut}" alt="${d.nombre}" onerror="this.onerror=null;this.src='${d.foto}';this.classList.add('fc-sin-recorte')"></div>`
+    : `<div class="fc-retrato-wrap"><div class="ficha-foto vacia">${iniciales(d.nombre)}</div></div>`;
   const tray = d.trayectoria.length
     ? `<ul class="tray-list">${d.trayectoria.map(t=>`<li>${t}</li>`).join('')}</ul>`
     : `<div style="color:var(--text-muted);font-size:13px">Sin trayectoria registrada en la fuente.</div>`;
@@ -508,7 +502,7 @@ function pintarFicha(d){
 
   d3.select('#ficha').style('border-top-color',pc).html(`
     <div class="ficha-card">
-      ${foto}
+      ${retrato}
       <div class="ficha-body">
         <div class="ficha-head">
           <div>
@@ -530,12 +524,11 @@ function pintarFicha(d){
         ${nota}
       </div>
     </div>`);
-  // Transición de entrada (foto + datos, abajo->arriba): reflow del estado inicial y .show,
-  // de forma síncrona y fiable (sin depender de rAF).
-  const card = document.querySelector('#ficha .ficha-card');
-  if(card){ void card.offsetWidth; card.classList.add('show'); }
   // contador animado de las cantidades monetarias al aparecer la ficha
   animarCantidades('#ficha');
+  // transición de entrada (retrato + datos): reflow del estado inicial y luego .show
+  const card = document.querySelector('#ficha .ficha-card');
+  if(card){ void card.offsetWidth; card.classList.add('show'); }
 }
 
 function seleccionar(d){
@@ -815,6 +808,13 @@ let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=
 const SB_URL = 'https://kdpsjutsgvghdtzoskkg.supabase.co/rest/v1';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkcHNqdXRzZ3ZnaGR0em9za2tnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxOTE3MzEsImV4cCI6MjA4MDc2NzczMX0.1W2H42tPmOSvVWPd65jS3m13k_M3gH_X1ifysTKppPo';
 const SB_HEADERS = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Accept-Profile': 'cargos_publicos' };
+// Retratos recortados (fondo transparente) para la ficha flotante.
+const SB_FOTOS_ALTOS_CUT = 'https://kdpsjutsgvghdtzoskkg.supabase.co/storage/v1/object/public/cargos-publicos/fotos/altos_cut/';
+// Precarga en idle (baja prioridad) los recortes para que la ficha abra al instante.
+function precargarRetratos(){
+  const run = () => CARGOS.forEach(d => { if(!d.foto) return; const im = new Image(); im.decoding='async'; try{im.fetchPriority='low';}catch(e){} im.src = SB_FOTOS_ALTOS_CUT + d.ou + '.png'; });
+  (window.requestIdleCallback || function(f){ return setTimeout(f, 1000); })(run);
+}
 
 function derivarConsejerias(){
   const porArea = d3.group(CARGOS, d => d.area);
@@ -837,6 +837,7 @@ function arrancar(){
       derivarConsejerias();
       pintarKpis();
       renderControles(); renderOrg(); renderSal(); renderPat();
+      precargarRetratos();
     })
     .catch(e => { console.error('Error cargando datos de Supabase:', e); });
 }
