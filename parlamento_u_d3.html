@@ -401,7 +401,7 @@
   </section>
   <section class="kpis" aria-live="polite">
     <div class="kpi"><div class="k">Parlamentarias en activo</div><div id="stat-total" class="v">0</div></div>
-    <div class="kpi"><div class="k">Posible conflicto de intereses</div><div id="stat-muted" class="v">0</div></div>
+    <div class="kpi"><div class="k">Posible conflicto de intereses en materia de vivienda</div><div id="stat-muted" class="v">0</div></div>
   </section>
   <div class="controles" role="group" aria-label="Modo de visualización">
     <button class="activo" data-mode="todos">Todos</button>
@@ -698,7 +698,7 @@ function pintarFicha(d) {
   const motivoConf = (d.destaca_viviendas && d.destaca_inmuebles) ? "3+ viviendas e inmuebles"
                    : d.destaca_viviendas ? "3+ viviendas" : "3+ inmuebles";
   const conflictoBadge = conflicto
-    ? `<div class="fc-badge" style="color:#B45309"><span>⚠️</span>Posible conflicto de intereses · ${motivoConf}</div>` : "";
+    ? `<div class="fc-badge" style="color:#B45309"><span>⚠️</span>Posible conflicto de intereses en materia de vivienda · ${motivoConf}</div>` : "";
   const stats = d.sin_datos
     ? `<div class="fc-stats">
          <div class="fc-stat"><div class="k">Circunscripción</div><div class="v" style="font-size:16px">${d.circunscripcion}</div></div>
