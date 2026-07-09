@@ -274,6 +274,42 @@
     .ficha-url { display: block; margin-top: 7px; font-size: 11px; color: var(--gris); word-break: break-all; }
     .ficha-nota { margin-top: 10px; font-size: 13px; color: #9A6B00; background: #FFF6E0; border: 1px solid #F2E2AE; border-radius: 7px; padding: 8px 10px; }
     @media (max-width: 620px) { .ficha-card { flex-direction: column; } .ficha-foto { width: 96px; height: 126px; } }
+
+    /* ---- Capa móvil: lista tocable que sustituye al arco en U ----
+       A <=720px el arco (SVG 1180x820) encoge tanto que las burbujas quedan a ~9px:
+       ilegibles e intocables. Debajo de ese ancho ocultamos el SVG y mostramos una
+       lista agrupada por grupo parlamentario, con fotos de 48px (objetivo tactil) y
+       el mismo clic->ficha y filtrado. En escritorio el arco se mantiene intacto. */
+    .lista-movil { display: none; }
+    @media (max-width: 720px) {
+      #chart { display: none; }
+      .lista-movil { display: block; }
+    }
+    .lm-grupo { display: flex; align-items: center; gap: 8px; margin: 20px 2px 8px;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px;
+      color: #0D1B2A; text-transform: uppercase; letter-spacing: .02em; }
+    .lm-grupo:first-child { margin-top: 4px; }
+    .lm-grupo-dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+    .lm-grupo-nom { flex: 1; min-width: 0; }
+    .lm-grupo-n { font-size: 12px; color: #5A6B77; font-weight: 600; }
+    .lm-items { display: flex; flex-direction: column; gap: 7px; }
+    .lm-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+      background: #fff; border: 1px solid #E1EAF0; border-left: 4px solid var(--c, #ccc);
+      border-radius: 12px; padding: 8px 10px; min-height: 62px; cursor: pointer;
+      font: inherit; color: inherit; -webkit-tap-highlight-color: transparent;
+      transition: background .12s ease, box-shadow .12s ease, opacity .15s ease; }
+    .lm-item:active { background: #F1F6F9; }
+    .lm-item.sel { box-shadow: 0 0 0 2px var(--c, #123A5D) inset; }
+    .lm-item.lm-apagado { opacity: .4; }
+    .lm-item.lm-apagado .lm-foto { filter: grayscale(1); }
+    .lm-foto { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex: none;
+      border: 2px solid var(--c, #ccc); background: #EEF3F6; box-sizing: border-box; }
+    .lm-foto.vacia { display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 800; color: #5A6B77; font-size: 14px; }
+    .lm-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .lm-nombre { font-weight: 700; font-size: 14.5px; color: #0D1B2A; line-height: 1.2; }
+    .lm-meta { font-size: 12px; color: #5A6B77; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lm-chevron { color: #B7C2CB; font-size: 22px; line-height: 1; flex: none; }
   </style>
 <style>/* modo incrustado en el shell de pestañas */
   html.embed #ficha:has(.ficha-vacia){display:none;}   /* no mostrar el placeholder vacío: deja ver antes el gráfico */
@@ -285,7 +321,7 @@
   <div class="cabecera">
     <div>
       <h1>Parlamento de Canarias <em>en&nbsp;U</em></h1>
-      <p class="sub">Visualización interactiva de la muestra de declaraciones patrimoniales en una planta 2D del arco parlamentario. Los 70 diputados y diputadas en activo de la XI Legislatura, dispuestos en herradura con las dos bancadas enfrentadas -gobierno y oposición-. Cada burbuja lleva su foto oficial. Pasa el cursor para un resumen y haz clic para abrir su ficha con el enlace a la declaración de bienes.</p>
+      <p class="sub">Visualización interactiva de la muestra de declaraciones patrimoniales en una planta 2D del arco parlamentario. Los 70 diputados y diputadas en activo de la XI Legislatura, dispuestos en herradura con las dos bancadas enfrentadas -gobierno y oposición-. Cada burbuja lleva su foto oficial. Toca (o pasa el cursor sobre) cada diputado o diputada para abrir su ficha con el enlace a la declaración de bienes. En móvil se muestran en lista agrupada por grupo parlamentario.</p>
     </div>
   </div>
   <section class="ficha" id="ficha" aria-live="polite">
@@ -303,6 +339,7 @@
   </div>
   <section class="panel">
     <svg id="chart" viewBox="0 0 1180 820" role="img" aria-label="Parlamento de Canarias en forma de U"></svg>
+    <div class="lista-movil" id="lista-movil" aria-label="Diputados y diputadas por grupo parlamentario"></div>
   </section>
   <p class="fuente">Fuente: Parlamento de Canarias. Datos extraídos con OCR y revisión visual manual. Se representan los 70 escaños en activo de la XI Legislatura: se excluyen 9 diputados/as que causaron baja (renuncias y pasos al Congreso/Senado, ya sustituidos). La declaración de Marcos A. Bergaz se incorpora desde el PDF patrimonial publicado el 5 de septiembre de 2023. <strong>Patrimonio, deuda, inmuebles y viviendas</strong> proceden de la declaración de bienes (OCR). El <strong>salario anual (2025)</strong> es la retribución parlamentaria reconstruida según la tarifa oficial vigente (base + complemento por cargo); para quienes están en el Gobierno de Canarias se muestra su retribución de alto cargo (fuente: portal de transparencia del Gobierno de Canarias y datos.canarias.es, feb. 2026). Excluye dietas variables.</p>
 </main>
@@ -534,6 +571,11 @@ function actualizar(nuevoModo) {
   contador(statMuted, r.apagados, fmtPct);
   salarioDelFiltro();
   seats.classed("apagado", d => apagado(d));
+  // mismo criterio de atenuación en la lista móvil
+  document.querySelectorAll('#lista-movil .lm-item').forEach(b => {
+    const d = datosU.find(x => x.diputado_id === b.dataset.id);
+    b.classList.toggle('lm-apagado', d ? apagado(d) : false);
+  });
 }
 
 // tooltip (hover) - mismo mecanismo, ahora con foto
@@ -555,14 +597,19 @@ seats.on("mousemove", (event, d) => {
   })
   .on("mouseleave", () => tooltip.style("display", "none"))
   // clic - ahora rellena el cuadro-ficha (no abre el documento)
-  .on("click", (event, d) => {
-    seats.classed("seleccionado", s => s.diputado_id === d.diputado_id);
-    pintarFicha(d);
-    mostrarSalario(d.salario, d.cargoGob ? `${d.nombre} · en el Gobierno` : d.nombre);
-    // incrustado en el shell: lleva la página a la ficha (scrollIntoView está parcheado
-    // para delegar el scroll en el shell; ver puente de scroll al final del documento).
-    if (document.documentElement.classList.contains('embed')) document.getElementById('ficha').scrollIntoView();
-  });
+  .on("click", (event, d) => seleccionar(d));
+
+// Selección unificada: la usan tanto el clic del escaño (arco, escritorio) como el
+// de la lista móvil. Rellena la ficha, marca la selección en ambas vistas y, si está
+// incrustado en el shell, lleva la página a la ficha (scrollIntoView parcheado; ver final).
+function seleccionar(d) {
+  seats.classed("seleccionado", s => s.diputado_id === d.diputado_id);
+  document.querySelectorAll('#lista-movil .lm-item').forEach(b =>
+    b.classList.toggle('sel', b.dataset.id === d.diputado_id));
+  pintarFicha(d);
+  mostrarSalario(d.salario, d.cargoGob ? `${d.nombre} · en el Gobierno` : d.nombre);
+  if (document.documentElement.classList.contains('embed')) document.getElementById('ficha').scrollIntoView();
+}
 
 // Cargos internos de la Cámara (presidencia, etc.), para anotarlos en la ficha por diputado_id.
 const CARGO_CAMARA = {
@@ -610,8 +657,46 @@ function pintarFicha(d) {
     </div></div>`);
 }
 
+// Lista tocable para movil (el arco en U es ilegible a <=720px). Diputados agrupados
+// por grupo parlamentario (orden por tamano de grupo), con foto de 48px, el mismo
+// clic->ficha (seleccionar) y el mismo criterio de atenuacion del filtro.
+function pintarListaMovil() {
+  const cont = document.getElementById('lista-movil');
+  if (!cont) return;
+  const grupos = {};
+  datosU.forEach(d => { (grupos[d.grupo] = grupos[d.grupo] || []).push(d); });
+  const orden = Object.keys(grupos).sort((a, b) => grupos[b].length - grupos[a].length);
+  let html = '';
+  orden.forEach(g => {
+    const arr = grupos[g].slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    html += `<div class="lm-grupo"><span class="lm-grupo-dot" style="background:${arr[0].color}"></span>`
+          + `<span class="lm-grupo-nom">${g}</span><span class="lm-grupo-n">${arr.length}</span></div>`
+          + `<div class="lm-items">`;
+    arr.forEach(d => {
+      const foto = FOTOS[d.diputado_id]
+        ? `<img class="lm-foto" src="${FOTOS[d.diputado_id]}" alt="" loading="lazy" style="border-color:${d.color}">`
+        : `<span class="lm-foto vacia" style="border-color:${d.color}">${iniciales(d.nombre)}</span>`;
+      const camara = CARGO_CAMARA[d.diputado_id] ? ` <span title="${CARGO_CAMARA[d.diputado_id]}">🏛</span>` : '';
+      html += `<button class="lm-item" data-id="${d.diputado_id}" style="--c:${d.color}">`
+            + foto
+            + `<span class="lm-info"><span class="lm-nombre">${d.nombre}${camara}</span>`
+            + `<span class="lm-meta">${d.circunscripcion} · ${d.patrimonio_fmt}</span></span>`
+            + `<span class="lm-chevron" aria-hidden="true">›</span></button>`;
+    });
+    html += `</div>`;
+  });
+  cont.innerHTML = html;
+  cont.querySelectorAll('.lm-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const d = datosU.find(x => x.diputado_id === btn.dataset.id);
+      if (d) seleccionar(d);
+    });
+  });
+}
+
 d3.selectAll("button").on("click", function() { actualizar(this.dataset.mode); });
 contador(statTotal, TOTAL_PARLAMENTO, fmtNum);
+pintarListaMovil();
 actualizar("todos");
 </script>
 <script>
