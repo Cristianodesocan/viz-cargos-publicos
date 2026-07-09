@@ -347,6 +347,9 @@
     .pm-nom { display: block; font-family: 'Space Grotesk', sans-serif; font-weight: 600;
       font-size: 10.5px; color: #1A2F45; }
     .pm-meta { display: block; font-size: 9px; color: #647886; margin-top: 2px; }
+    /* patrimonio monetario declarado, destacado bajo la circunscripción */
+    .pm-patr { display: block; margin-top: 3px; font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700; font-size: 10px; color: #123A5D; font-variant-numeric: tabular-nums; }
     .pm-burbuja.sel .pm-foto { box-shadow: 0 0 0 3px #fff, 0 0 0 6px #0D1B2A; }
     .pm-burbuja.pm-apagado { opacity: .28; filter: grayscale(.7); }
   </style>
@@ -758,7 +761,8 @@ function pintarListaMovil() {
       html += `<button class="pm-burbuja" data-id="${d.diputado_id}" title="${d.nombre}">`
             + `<span class="pm-foto-wrap">${foto}${badge}</span>`
             + `<span class="pm-cap"><span class="pm-nom">${d.nombre}</span>`
-            +   `<span class="pm-meta">${d.circunscripcion}</span></span>`
+            +   `<span class="pm-meta">${d.circunscripcion}</span>`
+            +   `<span class="pm-patr">${d.sin_datos ? 's/d' : d.patrimonio_fmt}</span></span>`
             + `</button>`;
     });
     html += `</div></div>`;
@@ -786,6 +790,13 @@ function pintarListaMovil() {
       cont.classList.toggle('hay-abierto', abrir);
     });
   });
+  // Abre por defecto el resumen del grupo mayoritario (primer panel, el más grande),
+  // sin atenuar los demás: sirve de ejemplo y hace descubrible el acordeón.
+  const primerPanel = cont.querySelector('.pm-panel');
+  if (primerPanel) {
+    primerPanel.classList.add('abierto');
+    primerPanel.querySelector('.pm-head').setAttribute('aria-expanded', 'true');
+  }
 }
 
 d3.selectAll("button").on("click", function() { actualizar(this.dataset.mode); });
