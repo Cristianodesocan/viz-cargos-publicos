@@ -338,9 +338,9 @@ function animarContador(node, valor, dur){
 
 function pintarFicha(d){
   const pc = colorPartido(d.partido), pn = PARTIDOS[d.partido].nombre;
-  const cut = SB_FOTOS_ALTOS_CUT + d.ou + '.png';
+  // Foto normal enmarcada (el recorte transparente solo se usa en el Parlamento).
   const retrato = d.foto
-    ? `<div class="fc-retrato-wrap"><img class="fc-retrato" src="${cut}" alt="${d.nombre}" onerror="this.onerror=null;this.src='${d.foto}';this.classList.add('fc-sin-recorte')"></div>`
+    ? `<div class="fc-retrato-wrap"><img class="fc-retrato fc-sin-recorte" src="${d.foto}" alt="${d.nombre}"></div>`
     : `<div class="fc-retrato-wrap"><div class="ficha-foto vacia">${iniciales(d.nombre)}</div></div>`;
   const trayHTML = d.trayectoria.length
     ? `<ul class="tray-list">${d.trayectoria.map(t=>`<li>${t}</li>`).join('')}</ul>`
@@ -678,7 +678,6 @@ function arrancar(){
       })).sort((a, b) => a.nivel - b.nivel || (b.salario || 0) - (a.salario || 0));
       pintarKpis();
       renderAll();
-      precargarRetratos();
     })
     .catch(e => { console.error('Error cargando datos de Supabase:', e); });
 }

@@ -470,9 +470,9 @@ const ocultarTT = ()=>TT.style('opacity',0);
 /* ============ 2. FICHA (cuadro resumen) ============ */
 function pintarFicha(d){
   const pc=colorP(d.sigla), pn=nombreP(d.sigla);
-  const cut = SB_FOTOS_ALTOS_CUT + d.ou + '.png';
+  // Foto normal enmarcada (el recorte transparente solo se usa en el Parlamento).
   const retrato = d.foto
-    ? `<div class="fc-retrato-wrap"><img class="fc-retrato" src="${cut}" alt="${d.nombre}" onerror="this.onerror=null;this.src='${d.foto}';this.classList.add('fc-sin-recorte')"></div>`
+    ? `<div class="fc-retrato-wrap"><img class="fc-retrato fc-sin-recorte" src="${d.foto}" alt="${d.nombre}"></div>`
     : `<div class="fc-retrato-wrap"><div class="ficha-foto vacia">${iniciales(d.nombre)}</div></div>`;
   const tray = d.trayectoria.length
     ? `<ul class="tray-list">${d.trayectoria.map(t=>`<li>${t}</li>`).join('')}</ul>`
@@ -837,7 +837,6 @@ function arrancar(){
       derivarConsejerias();
       pintarKpis();
       renderControles(); renderOrg(); renderSal(); renderPat();
-      precargarRetratos();
     })
     .catch(e => { console.error('Error cargando datos de Supabase:', e); });
 }
