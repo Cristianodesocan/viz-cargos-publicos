@@ -22,6 +22,7 @@
 
 <div id="odc-cargos-viz">
   <div class="odc-head">
+    <h2 class="odc-title">Remuneración y patrimonio de cargos públicos en el Gobierno de Canarias <span>(2023 - 2026)</span></h2>
     <span class="odc-flag"><span class="odc-dot"></span>Visualización interactiva</span>
     <p class="odc-hint">Patrimonio y retribución declarados por los cargos públicos de Canarias.
       Elige un ámbito y haz clic en cada persona para ver su ficha; pasa el cursor para un resumen.</p>
@@ -43,6 +44,10 @@
 
 /* --- cabecera "bloque interactivo" (sustituye a la barra de marca) --- */
 #odc-cargos-viz .odc-head{ margin:0 0 16px; }
+#odc-cargos-viz .odc-title{ font-family:'Space Grotesk',system-ui,sans-serif; font-weight:700;
+  color:var(--odc-navy-dark); font-size:clamp(1.3rem,2.6vw,1.9rem); line-height:1.16;
+  letter-spacing:-.01em; margin:0 0 12px; max-width:900px; }
+#odc-cargos-viz .odc-title span{ color:var(--odc-teal-dark); font-weight:600; white-space:nowrap; }
 #odc-cargos-viz .odc-flag{ display:inline-flex; align-items:center; gap:8px;
   background:var(--odc-teal-light); color:var(--odc-teal-dark);
   font-family:'Space Grotesk',system-ui,sans-serif; font-weight:700; font-size:11px;
