@@ -91,6 +91,22 @@
     .tab .t{font-size:14px;}
     .brand .umbral{display:none;}
   }
+
+  /* ---------- Barra inferior fija: navegación persistente en móvil ---------- */
+  .botnav{display:none;}
+  .botnav-btn{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:2px;background:none;border:0;color:rgba(255,255,255,.62);cursor:pointer;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;padding:8px 4px;min-height:48px;
+    border-radius:11px;-webkit-tap-highlight-color:transparent;transition:color .15s ease,background .15s ease;}
+  .botnav-btn .bn-lb{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .botnav-btn.on{color:#fff;background:rgba(0,200,180,.18);box-shadow:inset 0 2px 0 var(--teal);}
+  @media (max-width:600px){
+    .botnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:200;gap:4px;
+      background:rgba(13,27,42,.97);border-top:1px solid rgba(255,255,255,.12);
+      box-shadow:0 -6px 20px rgba(13,27,42,.30);
+      padding:6px 8px calc(6px + env(safe-area-inset-bottom));}
+    body{padding-bottom:70px;}
+  }
 </style>
 </head>
 <body>
@@ -122,18 +138,22 @@
 
 <main class="stage" id="stage"></main>
 
+<!-- Barra inferior fija: navegación persistente en móvil (las secciones son muy largas) -->
+<nav class="botnav" id="botnav" aria-label="Cambiar de ámbito institucional"></nav>
+
 <script>
 const TABS = [
-  { id:'parlamento',  label:'Parlamento de Canarias', sub:'70 diputados · XI Legislatura',
+  { id:'parlamento',  label:'Parlamento de Canarias', corta:'Parlamento', sub:'70 diputados · XI Legislatura',
     src:'parlamento_u_d3.html?embed=1' },
-  { id:'gobierno',    label:'Gobierno de Canarias',   sub:'Consejo de Gobierno · 13 miembros',
+  { id:'gobierno',    label:'Gobierno de Canarias',   corta:'Gobierno',   sub:'Consejo de Gobierno · 13 miembros',
     src:'gobierno_organigrama_d3.html?embed=1' },
-  { id:'altoscargos', label:'Altos cargos',           sub:'Estructura ejecutiva · 147 cargos',
+  { id:'altoscargos', label:'Altos cargos',           corta:'Altos cargos', sub:'Estructura ejecutiva · 147 cargos',
     src:'altos_cargos_gobierno_d3.html?embed=1' },
 ];
 
-const tabsEl  = document.getElementById('tabs');
-const stageEl = document.getElementById('stage');
+const tabsEl   = document.getElementById('tabs');
+const stageEl  = document.getElementById('stage');
+const botnavEl = document.getElementById('botnav');
 const refs = {};   // id -> {tab, wrap, iframe, velo, cargado}
 
 TABS.forEach((t, i) => {
@@ -147,6 +167,19 @@ TABS.forEach((t, i) => {
   tab.innerHTML = `<span class="t">${t.label}</span><span class="s">${t.sub}</span>`;
   tab.addEventListener('click', () => activar(t.id, true));
   tabsEl.appendChild(tab);
+
+  // Barra inferior fija (navegación persistente en móvil): mismo destino que la pestaña,
+  // y al tocar lleva al inicio de la sección (las secciones son muy largas).
+  const bt = document.createElement('button');
+  bt.type = 'button'; bt.className = 'botnav-btn';
+  bt.setAttribute('aria-label', t.label);
+  bt.innerHTML = `<span class="bn-lb">${t.corta || t.label}</span>`;
+  bt.addEventListener('click', () => {
+    activar(t.id, true);
+    const y = Math.max(0, stageEl.getBoundingClientRect().top + window.pageYOffset - 8);
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  });
+  if (botnavEl) botnavEl.appendChild(bt);
 
   const wrap = document.createElement('div');
   wrap.className = 'frame-wrap';
@@ -165,7 +198,7 @@ TABS.forEach((t, i) => {
   wrap.appendChild(iframe);
   stageEl.appendChild(wrap);
 
-  refs[t.id] = { tab, wrap, iframe, velo, cargado:false, src:t.src };
+  refs[t.id] = { tab, bt, wrap, iframe, velo, cargado:false, src:t.src };
 });
 
 // Mensajes de los hijos (modo embed): alto del iframe y petición de scroll.
@@ -220,6 +253,7 @@ function activar(id, empujarHash) {
     const r = refs[t.id], on = t.id === id;
     r.tab.classList.toggle('activa', on);
     r.tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    if (r.bt) { r.bt.classList.toggle('on', on); r.bt.setAttribute('aria-current', on ? 'true' : 'false'); }
     r.wrap.classList.toggle('activa', on);
     if (on && !r.cargado) {           // carga perezosa: solo al abrir por primera vez
       r.iframe.src = r.src;

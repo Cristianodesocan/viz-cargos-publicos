@@ -202,8 +202,12 @@
     color:#8A6D1B;font-size:12.5px;line-height:1.55;margin:6px 0 16px;}
   .nota-metod b{color:#6b520f;}
 </style>
-<style>/* modo incrustado en el shell de pestañas: oculta el badge ODESOCAN redundante */
+<style>/* modo incrustado en el shell de pestañas + ajustes móviles */
   html.embed .hero-badge{display:none!important;}
+  /* Móvil: no mostrar el cuadro resumen vacío hasta seleccionar (deja ver antes el organigrama);
+     y ocultar las descripciones largas para llegar antes a la interacción. */
+  html.embed section.bloque:has(.ficha-vacia){display:none;}
+  @media (max-width:600px){ .label-sub{display:none;} section.bloque:has(.ficha-vacia){display:none;} }
 </style>
 <script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
 </head>

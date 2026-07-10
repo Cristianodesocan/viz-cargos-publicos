@@ -141,6 +141,18 @@
   .controles .cbtn:hover{border-color:var(--teal);}
   .controles .cbtn.activo{background:var(--navy-dark);color:#fff;border-color:var(--navy-dark);}
   .controles .hint{margin-left:auto;color:var(--text-muted);font-size:12px;}
+  /* Móvil: los 14 chips (~430px apilados) se sustituyen por un desplegable de una línea. */
+  .controles select.cons-select{display:none;}
+  @media (max-width:600px){
+    .controles{margin:0 0 12px;}
+    .controles .cbtn,.controles .hint{display:none;}
+    .controles select.cons-select{display:block;width:100%;min-height:44px;
+      font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--navy-dark);
+      background:#fff;border:1px solid var(--border-soft);border-radius:12px;padding:11px 40px 11px 14px;
+      -webkit-appearance:none;appearance:none;cursor:pointer;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B8CA5' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 14px center;}
+  }
 
   /* ---------- 3. ORGANIGRAMA (HTML) ---------- */
   .org-cupula{display:flex;flex-direction:column;align-items:center;gap:0;margin:4px 0 8px;}
@@ -275,8 +287,12 @@
     color:#8A6D1B;font-size:12.5px;line-height:1.55;margin:6px 0 16px;}
   .nota-metod b{color:#6b520f;}
 </style>
-<style>/* modo incrustado en el shell de pestañas: oculta el badge ODESOCAN redundante */
+<style>/* modo incrustado en el shell de pestañas + ajustes móviles */
   html.embed .hero-badge{display:none!important;}
+  /* Móvil: no mostrar el cuadro resumen vacío hasta seleccionar (deja ver antes el organigrama);
+     y ocultar las descripciones largas para llegar antes a la interacción. */
+  html.embed section.bloque:has(.ficha-vacia){display:none;}
+  @media (max-width:600px){ .label-sub{display:none;} section.bloque:has(.ficha-vacia){display:none;} }
 </style>
 <script>if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');</script>
 </head>
@@ -633,10 +649,22 @@ function renderControles(){
     .on('click',(ev,d)=>{
       // toggle: si ya estaba seleccionada, se deselecciona (vuelven todas)
       filtroCons = (filtroCons===d.area) ? null : d.area;
-      c.selectAll('button.cbtn').classed('activo',x=>x.area===filtroCons);
-      aplicarFiltro();
+      sincronizarControles(); aplicarFiltro();
     });
   c.append('span').attr('class','hint').text('Clic en una consejería para aislarla · púlsala de nuevo (o «Todas») para ver el organigrama completo');
+  // Desplegable equivalente para MÓVIL: los 14 chips apilados ocupan ~430px; el select, una línea.
+  const sel = c.append('select').attr('class','cons-select').attr('aria-label','Filtrar por consejería');
+  sel.selectAll('option').data(chips).join('option')
+    .attr('value', d => d.area==null ? '' : d.area)
+    .text(d => d.area==null ? 'Consejería: todas' : d.lbl);
+  sel.on('change', function(){ filtroCons = this.value==='' ? null : this.value; sincronizarControles(); aplicarFiltro(); });
+  sincronizarControles();
+}
+// Mantiene chips y desplegable en el mismo estado que filtroCons.
+function sincronizarControles(){
+  const c=d3.select('#controles');
+  c.selectAll('button.cbtn').classed('activo', x => x.area===filtroCons);
+  c.select('select.cons-select').property('value', filtroCons==null ? '' : filtroCons);
 }
 function aplicarFiltro(){
   const cont=d3.select('#organigrama');
