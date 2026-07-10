@@ -434,6 +434,9 @@ const ficha = d3.select("#ficha");
 const statTotal = d3.select("#stat-total");
 const statMuted = d3.select("#stat-muted");
 let modo = "todos";
+// Diputado/a actualmente seleccionado/a (null = ninguno). El KPI de conflicto de
+// intereses lo usa en modo "todos" para reflejar la selección en curso.
+let seleccionado = null;
 
 // Total del parlamento (denominador de los porcentajes de conflicto de intereses)
 const TOTAL_PARLAMENTO = resumen.todos.visibles;
@@ -509,9 +512,8 @@ const datosU = datos.map(d => {
   return { ...d, x: p.x, y: p.y, bancada: p.bancada, salario, cargoGob };
 });
 
-// Conflicto de intereses = 3+ viviendas O 3+ inmuebles (unión, cada diputado/a una sola vez).
-// En la vista general (todos) el KPI cuenta a esos; al filtrar, el subconjunto de cada criterio.
-resumen.todos.apagados = datosU.filter(d => d.destaca_viviendas || d.destaca_inmuebles).length;
+// Conflicto de intereses = 3+ viviendas O 3+ inmuebles (destaca_viviendas / destaca_inmuebles).
+// El KPI se calcula en nConflicto() según el modo activo y la selección; ver actualizar().
 
 // guias concentricas
 function arco(rx, ry, a0, a1) {
@@ -629,11 +631,20 @@ function apagado(d) {
 // El salario anual dejó de ser un KPI agregado: ahora se muestra por diputado/a en su
 // ficha (ver pintarFicha). Los "Salario medio" por grupo se conservan en el tooltip de
 // partido (escritorio) y en el resumen de cada panel móvil.
+// KPI de posible conflicto de intereses. Mantiene relación con DOS ámbitos:
+//  - En "todos" refleja la SELECCIÓN en curso: 0 si no hay nadie o la persona no tiene
+//    conflicto; 1 si la persona seleccionada lo tiene (3+ viviendas o 3+ inmuebles).
+//  - Al filtrar por viviendas/inmuebles prima la vista del parlamento: cuenta el agregado
+//    de ese criterio (la persona seleccionada queda incluida en el sumatorio si le corresponde).
+function nConflicto(m) {
+  if (m === "viviendas") return datosU.filter(d => d.destaca_viviendas).length;
+  if (m === "inmuebles") return datosU.filter(d => d.destaca_inmuebles).length;
+  return (seleccionado && (seleccionado.destaca_viviendas || seleccionado.destaca_inmuebles)) ? 1 : 0;
+}
 function actualizar(nuevoModo) {
   modo = nuevoModo;
   d3.selectAll("button").classed("activo", function() { return this.dataset.mode === modo; });
-  const r = resumen[modo];
-  contador(statMuted, r.apagados, fmtPct);
+  contador(statMuted, nConflicto(modo), fmtPct);
   seats.classed("apagado", d => apagado(d));
   // mismo criterio de atenuación en los paneles móviles
   document.querySelectorAll('#lista-movil .pm-burbuja').forEach(b => {
@@ -667,10 +678,14 @@ seats.on("mousemove", (event, d) => {
 // de la lista móvil. Rellena la ficha, marca la selección en ambas vistas y, si está
 // incrustado en el shell, lleva la página a la ficha (scrollIntoView parcheado; ver final).
 function seleccionar(d) {
+  seleccionado = d;
   seats.classed("seleccionado", s => s.diputado_id === d.diputado_id);
   document.querySelectorAll('#lista-movil .pm-burbuja').forEach(b =>
     b.classList.toggle('sel', b.dataset.id === d.diputado_id));
   pintarFicha(d);
+  // En modo "todos" el KPI de conflicto sigue a la persona seleccionada (0 → 1 y su %).
+  // Al filtrar no cambia: prevalece el agregado del parlamento (ver nConflicto).
+  contador(statMuted, nConflicto(modo), fmtPct);
   if (document.documentElement.classList.contains('embed')) document.getElementById('ficha').scrollIntoView();
 }
 
