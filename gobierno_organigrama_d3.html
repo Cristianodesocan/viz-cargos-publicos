@@ -149,6 +149,10 @@
   .leyenda .lchip .dot{width:13px;height:13px;border-radius:50%;}
 
   /* tooltip */
+  /* En táctil (móvil/tablet) NO se muestran notas emergentes: al tocar se abre directo el
+     cuadro resumen (ficha), que da toda la información sin tapar burbujas aledañas. El hover
+     de escritorio (puntero de ratón) no cambia. */
+  @media (pointer: coarse) { .tt { display: none !important; } }
   .tt{position:fixed;z-index:50;pointer-events:none;opacity:0;transition:opacity .12s;
     background:var(--navy-dark);color:#fff;border:1px solid rgba(0,200,180,.2);
     border-radius:12px;padding:12px 14px;box-shadow:0 12px 34px rgba(0,0,0,.32);
