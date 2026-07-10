@@ -55,10 +55,10 @@
 #odc-cargos-viz .odc-sub{ margin:11px 0 0; color:#6B8CA5;
   font-family:'Inter',system-ui,sans-serif; font-size:14.5px; line-height:1.6; max-width:760px; }
 
-/* --- selector de ámbito: pestañas VERTICALES apiladas (clic evidente) --- */
-#odc-cargos-viz .odc-tabs{ display:flex; flex-direction:column; gap:9px; width:100%; max-width:540px; }
+/* --- selector de ámbito: pestañas HORIZONTALES en escritorio (aprovechan el ancho); apiladas en móvil --- */
+#odc-cargos-viz .odc-tabs{ display:flex; flex-direction:row; flex-wrap:wrap; gap:10px; width:100%; }
 #odc-cargos-viz .odc-tab{ display:grid; grid-template-columns:1fr auto; align-items:center; column-gap:12px;
-  width:100%; cursor:pointer; border:1px solid var(--odc-border); background:#fff; color:var(--odc-navy);
+  flex:1 1 220px; min-width:0; cursor:pointer; border:1px solid var(--odc-border); background:#fff; color:var(--odc-navy);
   margin:0; border-radius:13px; padding:14px 16px; text-align:left; font-family:inherit;
   -webkit-appearance:none; appearance:none; box-shadow:0 1px 4px rgba(13,27,42,.05);
   transition:border-color .15s ease, box-shadow .15s ease, transform .12s ease, background .15s ease; }
@@ -92,10 +92,10 @@
 #odc-cargos-viz .odc-load .txt{ font-family:'Space Grotesk',system-ui,sans-serif; font-weight:600;
   color:var(--odc-muted); font-size:13px; }
 
-/* --- móvil: las 3 pestañas verticales ocupan todo el ancho --- */
+/* --- móvil: las 3 pestañas se apilan en vertical y ocupan todo el ancho --- */
 @media (max-width:600px){
-  #odc-cargos-viz .odc-tabs{ max-width:none; }
-  #odc-cargos-viz .odc-tab{ padding:12px 14px; }
+  #odc-cargos-viz .odc-tabs{ flex-direction:column; }
+  #odc-cargos-viz .odc-tab{ flex:1 1 auto; padding:12px 14px; }
   #odc-cargos-viz .odc-tab .t{ font-size:14px; }
 }
 </style>

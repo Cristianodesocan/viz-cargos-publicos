@@ -47,10 +47,10 @@
     font-size:clamp(1.35rem,3.2vw,2rem);line-height:1.16;letter-spacing:-.01em;margin:0;max-width:960px;}
   .titulo-portal h1 .anios{color:#009E8E;font-weight:600;white-space:nowrap;}
 
-  /* ---------- Pestañas VERTICALES (apiladas, clic evidente) ---------- */
-  .tabs{display:flex;flex-direction:column;gap:8px;margin-top:14px;width:100%;max-width:560px;}
+  /* ---------- Pestañas HORIZONTALES en escritorio (aprovechan el ancho); en móvil se ocultan (barra inferior) ---------- */
+  .tabs{display:flex;flex-direction:row;flex-wrap:wrap;gap:10px;margin-top:14px;width:100%;}
   .tab{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;
-    width:100%;cursor:pointer;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);
+    flex:1 1 220px;min-width:0;cursor:pointer;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);
     color:#fff;border-radius:12px;padding:13px 16px;text-align:left;font-family:inherit;
     transition:background .16s ease,border-color .16s ease,transform .12s ease;}
   .tab:hover{background:rgba(255,255,255,.12);border-color:rgba(0,200,180,.5);transform:translateY(-1px);}
