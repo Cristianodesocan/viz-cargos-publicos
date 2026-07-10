@@ -217,6 +217,10 @@
   .leyenda .ley-logo img{max-width:100%;max-height:100%;object-fit:contain;}
 
   /* tooltip */
+  /* En táctil (móvil/tablet) NO se muestran notas emergentes: al tocar se abre directo el
+     cuadro resumen (ficha), que da toda la información sin tapar burbujas aledañas. El hover
+     de escritorio (puntero de ratón) no cambia. */
+  @media (pointer: coarse) { .tt { display: none !important; } }
   .tt{position:fixed;z-index:60;pointer-events:none;opacity:0;transition:opacity .12s;
     background:var(--navy-dark);color:#fff;border:1px solid rgba(0,200,180,.2);
     border-radius:12px;padding:13px 15px;box-shadow:0 12px 34px rgba(0,0,0,.34);

@@ -163,6 +163,10 @@
       text-overflow: ellipsis;
     }
     @media (max-width: 680px) { .kpis { grid-template-columns: 1fr; } }
+    /* En táctil (móvil/tablet) NO se muestran notas emergentes: al tocar se abre directo el
+       cuadro resumen (ficha), que da toda la información sin tapar burbujas aledañas. El hover
+       de escritorio (puntero de ratón) no cambia. */
+    @media (pointer: coarse) { .tooltip { display: none !important; } }
     .tooltip {
       position: fixed;
       z-index: 10;
