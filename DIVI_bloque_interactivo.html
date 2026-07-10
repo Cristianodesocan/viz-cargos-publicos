@@ -41,25 +41,18 @@
 }
 #odc-cargos-viz *{ box-sizing:border-box; }
 
-/* --- cabecera: HERO ODESOCAN (formato de marca) para toda la sección --- */
-#odc-cargos-viz .odc-hero{ position:relative; overflow:hidden; border-radius:24px; color:#fff;
-  background:linear-gradient(145deg,#0D1B2A 0%,#1A2F45 60%,#0F3460 100%);
-  padding:30px clamp(20px,4vw,44px) 34px; margin:0 0 20px; }
-#odc-cargos-viz .odc-hero::before,#odc-cargos-viz .odc-hero::after{ content:""; position:absolute; border-radius:50%; pointer-events:none; }
-#odc-cargos-viz .odc-hero::before{ width:360px; height:360px; top:-150px; right:-110px;
-  background:radial-gradient(circle,rgba(0,200,180,.25),transparent 70%); }
-#odc-cargos-viz .odc-hero::after{ width:280px; height:280px; bottom:-150px; left:-70px;
-  background:radial-gradient(circle,rgba(0,200,180,.13),transparent 70%); }
-#odc-cargos-viz .odc-badge{ position:relative; display:inline-flex; align-items:center; gap:8px;
-  background:rgba(0,200,180,.15); border:1px solid rgba(0,200,180,.3); border-radius:99px; padding:6px 14px;
-  font-family:'Space Grotesk',system-ui,sans-serif; font-weight:700; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:#8FF3E7; }
+/* --- cabecera: título de sección LIMPIO (formato ODESOCAN, sin fondo) --- */
+#odc-cargos-viz .odc-hero{ margin:0 0 18px; }
+#odc-cargos-viz .odc-badge{ display:inline-flex; align-items:center; gap:8px;
+  background:#E0FAF7; color:#009E8E; border-radius:99px; padding:5px 14px;
+  font-family:'Space Grotesk',system-ui,sans-serif; font-weight:700; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
 #odc-cargos-viz .odc-badge .odc-dot{ width:7px; height:7px; border-radius:50%; background:#00C8B4;
-  box-shadow:0 0 0 0 rgba(0,200,180,.7); animation:odc-pulse 2.2s infinite; }
+  box-shadow:0 0 0 0 rgba(0,200,180,.6); animation:odc-pulse 2.2s infinite; }
 @keyframes odc-pulse{ 70%{box-shadow:0 0 0 8px rgba(0,200,180,0);} 100%{box-shadow:0 0 0 0 rgba(0,200,180,0);} }
-#odc-cargos-viz .odc-title{ position:relative; font-family:'Space Grotesk',system-ui,sans-serif; font-weight:700; color:#fff;
-  font-size:clamp(1.5rem,3.4vw,2.4rem); line-height:1.14; letter-spacing:-.005em; margin:16px 0 0; max-width:900px; }
-#odc-cargos-viz .odc-title .odc-years{ color:#00C8B4; font-weight:600; white-space:nowrap; }
-#odc-cargos-viz .odc-sub{ position:relative; margin:13px 0 0; color:rgba(255,255,255,.65);
+#odc-cargos-viz .odc-title{ font-family:'Space Grotesk',system-ui,sans-serif; font-weight:700; color:#0D1B2A;
+  font-size:clamp(1.4rem,3vw,2.1rem); line-height:1.15; letter-spacing:-.01em; margin:14px 0 0; max-width:920px; }
+#odc-cargos-viz .odc-title .odc-years{ color:#009E8E; font-weight:600; white-space:nowrap; }
+#odc-cargos-viz .odc-sub{ margin:11px 0 0; color:#6B8CA5;
   font-family:'Inter',system-ui,sans-serif; font-size:14.5px; line-height:1.6; max-width:760px; }
 
 /* --- selector de ámbito: pestañas VERTICALES apiladas (clic evidente) --- */
