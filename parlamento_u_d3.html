@@ -47,7 +47,7 @@
       justify-content: flex-start;
       margin: 0 0 12px;
     }
-    /* Táctil: objetivos de toque >=44px en los filtros (Todos / 3+ viviendas / 3+ inmuebles). */
+    /* Táctil: objetivos de toque >=44px en los filtros (Tres viviendas / Tres inmuebles). */
     @media (pointer: coarse) { .controles button { min-height: 44px; padding: 11px 16px; font-size: 14px; } }
     button {
       border: 1px solid var(--borde);
@@ -409,10 +409,9 @@
     <div class="kpi"><div class="k">Parlamentarias en activo</div><div id="stat-total" class="v">0</div></div>
     <div class="kpi"><div class="k">Posible conflicto de intereses en materia de vivienda</div><div id="stat-muted" class="v">0</div></div>
   </section>
-  <div class="controles" role="group" aria-label="Modo de visualización">
-    <button class="activo" data-mode="todos">Todos</button>
-    <button data-mode="viviendas">3+ viviendas</button>
-    <button data-mode="inmuebles">3+ inmuebles</button>
+  <div class="controles" role="group" aria-label="Filtros del parlamento">
+    <button data-mode="viviendas" aria-pressed="false">Tres viviendas o más</button>
+    <button data-mode="inmuebles" aria-pressed="false">Tres inmuebles o más</button>
   </div>
   <section class="panel">
     <svg id="chart" viewBox="0 0 1180 820" role="img" aria-label="Parlamento de Canarias en forma de U"></svg>
@@ -643,7 +642,9 @@ function nConflicto(m) {
 }
 function actualizar(nuevoModo) {
   modo = nuevoModo;
-  d3.selectAll("button").classed("activo", function() { return this.dataset.mode === modo; });
+  d3.selectAll(".controles button")
+    .classed("activo", function() { return this.dataset.mode === modo; })
+    .attr("aria-pressed", function() { return this.dataset.mode === modo ? "true" : "false"; });
   contador(statMuted, nConflicto(modo), fmtPct);
   seats.classed("apagado", d => apagado(d));
   // mismo criterio de atenuación en los paneles móviles
@@ -870,7 +871,12 @@ function pintarListaMovil() {
   }
 }
 
-d3.selectAll("button").on("click", function() { actualizar(this.dataset.mode); });
+// Filtros como toggle: un clic activa el filtro; volver a pulsar el filtro ya activo
+// deselecciona y regresa al punto de partida (sin filtro, modo "todos").
+d3.selectAll(".controles button").on("click", function() {
+  const m = this.dataset.mode;
+  actualizar(modo === m ? "todos" : m);
+});
 contador(statTotal, TOTAL_PARLAMENTO, fmtNum);
 pintarListaMovil();
 actualizar("todos");
