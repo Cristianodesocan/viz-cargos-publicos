@@ -666,7 +666,9 @@ seats.on("mousemove", (event, d) => {
          <div><strong>Viviendas directas:</strong> ${d.viviendas}</div>
          <div><strong>Patrimonio monetario:</strong> ${d.patrimonio_fmt}</div>
          <div><strong>Deuda:</strong> ${d.deuda_fmt}</div>`;
-    const logo = LOGOS[d.sigla] ? `<img class="tt-logo-side" style="${estiloLogo(d.sigla, 20)}" src="${LOGOS[d.sigla]}" alt="${d.sigla}">` : "";
+    // Marta Gómez (11057) llegó al Grupo Mixto desde Vox: no le corresponde el logo de
+    // AHI (que el Mixto hereda por Raúl Acosta), así que se muestra sin logo de partido.
+    const logo = (LOGOS[d.sigla] && d.diputado_id !== "11057") ? `<img class="tt-logo-side" style="${estiloLogo(d.sigla, 20)}" src="${LOGOS[d.sigla]}" alt="${d.sigla}">` : "";
     tooltip.style("display", "block")
       .style("left", `${event.clientX + 16}px`).style("top", `${event.clientY + 16}px`)
       .html(`<div class="tt-head"><div class="tt-col">${foto}${logo}</div><div class="tt-info"><div class="nombre">${d.nombre}</div><div class="grupo">${d.grupo}</div></div></div>${CARGO_CAMARA[d.diputado_id] ? `<div class="tt-camara">🏛 ${CARGO_CAMARA[d.diputado_id]}</div>` : ""}${d.cargoGob ? `<div class="tt-gob">🏛 En el Gobierno · ${d.cargoGob}</div>` : ""}<div class="tt-datos">${cuerpo}</div>`);
