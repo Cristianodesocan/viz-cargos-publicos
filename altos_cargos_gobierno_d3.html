@@ -484,6 +484,24 @@ function moverTT(ev){
 }
 const ocultarTT = ()=>TT.style('opacity',0);
 
+// La fuente a veces deja el cargo de un consejero/a como "Consejero" a secas; se
+// completa con la consejería (area) para que se lea bien en gráficos, burbujas y fichas.
+function cargoCompleto(d){
+  const c=(d.cargo||'').trim();
+  if(/^consejer[oa]$/i.test(c)){
+    const m=(d.area||'').replace(/^Consejer[íi]a\s+de\s+/i,'').trim();
+    if(m) return c+' de '+m;
+  }
+  return c;
+}
+// Consejería como línea secundaria de la ficha: solo si aporta algo nuevo (el cargo
+// de un consejero/a ya la nombra; el de un director/viceconsejero/SGT, no).
+function areaSecundaria(d){
+  const area=(d.area||'').trim(); if(!area) return '';
+  const m=area.replace(/^Consejer[íi]a\s+de\s+/i,'').trim().split(',')[0].toLowerCase();
+  return (m && (d.cargo||'').toLowerCase().includes(m)) ? '' : area;
+}
+
 /* ============ 2. FICHA (cuadro resumen) ============ */
 function pintarFicha(d){
   const pc=colorP(d.sigla), pn=nombreP(d.sigla);
@@ -525,7 +543,7 @@ function pintarFicha(d){
           <div>
             <div class="ficha-nombre">${d.nombre}</div>
             <div class="ficha-cargo">${d.cargo}</div>
-            <div class="ficha-area">${d.area}</div>
+            ${areaSecundaria(d) ? `<div class="ficha-area">${areaSecundaria(d)}</div>` : ''}
           </div>
           <span class="badge-partido" style="border-color:${pc};color:${pc}">${d.logo?`<span class="badge-logo"><img src="${d.logo}" alt="${d.sigla}"></span>`:`<span class="sw" style="background:${pc}"></span>`}${pn}</span>
         </div>
@@ -878,7 +896,7 @@ function arrancar(){
   fetch(SB_URL + '/cp_altos_cargos_viz?select=*&order=orden_area.asc,rango.asc', { headers: SB_HEADERS })
     .then(r => r.json())
     .then(rows => {
-      CARGOS = rows.map(d => ({ ...d, cargo: d.cargo || '', trayectoria: d.trayectoria || [], meritos: d.meritos || [], foto: d.foto_url || null, logo: LOGOS[d.sigla] || null }));
+      CARGOS = rows.map(d => ({ ...d, cargo: cargoCompleto(d), trayectoria: d.trayectoria || [], meritos: d.meritos || [], foto: d.foto_url || null, logo: LOGOS[d.sigla] || null }));
       byOu = new Map(CARGOS.map(d => [d.ou, d]));
       pres = CARGOS.find(d => d.rango === 0);
       vp   = CARGOS.find(d => d.rango === 1);

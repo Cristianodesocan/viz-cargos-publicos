@@ -344,6 +344,24 @@ function animarContador(node, valor, dur){
     });
 }
 
+// La fuente a veces deja el cargo de un consejero/a como "Consejero" a secas; se
+// completa con la consejería (area) para que se lea bien en gráficos y fichas.
+function cargoCompleto(d){
+  const c = (d.cargo || '').trim();
+  if(/^consejer[oa]$/i.test(c)){
+    const m = (d.area || '').replace(/^Consejer[íi]a\s+de\s+/i, '').trim();
+    if(m) return c + ' de ' + m;
+  }
+  return c;
+}
+// Consejería como línea secundaria de la ficha: solo si aporta algo nuevo (el cargo
+// de un consejero/a ya la nombra; el de un director/viceconsejero/SGT, no).
+function areaSecundaria(d){
+  const area = (d.area || '').trim(); if(!area) return '';
+  const m = area.replace(/^Consejer[íi]a\s+de\s+/i, '').trim().split(',')[0].toLowerCase();
+  return (m && (d.cargo || '').toLowerCase().includes(m)) ? '' : area;
+}
+
 function pintarFicha(d){
   const pc = colorPartido(d.partido), pn = PARTIDOS[d.partido].nombre;
   // Foto normal enmarcada (el recorte transparente solo se usa en el Parlamento).
@@ -365,7 +383,7 @@ function pintarFicha(d){
           <div>
             <div class="ficha-nombre">${d.nombre}</div>
             <div class="ficha-cargo">${d.cargo}</div>
-            <div class="ficha-area">${d.area}</div>
+            ${areaSecundaria(d) ? `<div class="ficha-area">${areaSecundaria(d)}</div>` : ''}
           </div>
           <span class="badge-partido" style="border-color:${pc};color:${pc}">${marcaPartido(d.partido,20)}${pn}</span>
         </div>
@@ -678,7 +696,7 @@ function arrancar(){
     .then(r => r.json())
     .then(rows => {
       DATOS = rows.map(d => ({
-        ou: d.ou, nombre: d.nombre, cargo: d.cargo, area: d.area,
+        ou: d.ou, nombre: d.nombre, cargo: cargoCompleto(d), area: d.area,
         departamento: (+d.rango === 1 ? 'Vicepresidencia · Economía' : d.area_corta),
         partido: d.sigla, nivel: +d.rango, salario: d.salario, patrimonio: d.patrimonio,
         estado_declaracion: d.estado, fecha_posesion: d.fecha_posesion,
