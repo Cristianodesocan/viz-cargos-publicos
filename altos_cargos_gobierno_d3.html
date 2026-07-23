@@ -461,7 +461,7 @@ function pintarKpis(){
 const TT = d3.select('#tt');
 function ttHTML(d){
   const pc = colorP(d.sigla);
-  const foto = d.foto ? `<img src="${d.foto}">` : `<div class="ini">${iniciales(d.nombre)}</div>`;
+  const foto = d.foto ? `<img src="${d.foto}" data-ini="${iniciales(d.nombre)}" data-fallback="ini">` : `<div class="ini">${iniciales(d.nombre)}</div>`;
   const logoBig = d.logo ? `<span class="tt-logo-big"><img src="${d.logo}" alt="${d.sigla}"></span>` : '';
   let filas = `
     <div class="fila"><span class="kk">Partido (consejería)</span><span class="vv part"><span class="sw" style="background:${pc}"></span>${d.sigla}</span></div>
@@ -489,7 +489,7 @@ function pintarFicha(d){
   const pc=colorP(d.sigla), pn=nombreP(d.sigla);
   // Foto normal enmarcada (el recorte transparente solo se usa en el Parlamento).
   const retrato = d.foto
-    ? `<div class="fc-retrato-wrap"><img class="fc-retrato fc-sin-recorte" src="${d.foto}" alt="${d.nombre}"></div>`
+    ? `<div class="fc-retrato-wrap"><img class="fc-retrato fc-sin-recorte" src="${d.foto}" alt="${d.nombre}" data-ini="${iniciales(d.nombre)}" data-fallback="ficha-foto vacia"></div>`
     : `<div class="fc-retrato-wrap"><div class="ficha-foto vacia">${iniciales(d.nombre)}</div></div>`;
   const tray = d.trayectoria.length
     ? `<ul class="tray-list">${d.trayectoria.map(t=>`<li>${t}</li>`).join('')}</ul>`
@@ -574,7 +574,7 @@ let pres, vp;   // se recalculan tras el fetch (ver arrancar())
 function burbujaHTML(d, clase){
   const pc = colorP(d.sigla);
   const foto = d.foto
-    ? `<img class="foto" style="border-color:${pc}" src="${d.foto}" alt="${d.nombre}">`
+    ? `<img class="foto" style="border-color:${pc}" src="${d.foto}" alt="${d.nombre}" data-ini="${iniciales(d.nombre)}" data-fallback="foto vacia">`
     : `<div class="foto vacia" style="border-color:${pc}">${iniciales(d.nombre)}</div>`;
   const badge = d.logo ? `<span class="logo-badge"><img src="${d.logo}" alt="${d.sigla}"></span>` : '';
   const tag = d.rango===0 ? '<div class="tag">Presidencia</div>'
@@ -740,16 +740,20 @@ function barChart(svgSel, data, opts){
     gr.append('text').attr('x',rcX).attr('y',cy).attr('text-anchor','middle').attr('dominant-baseline','central')
       .attr('font-family','Space Grotesk').attr('font-weight',700).attr('font-size',rcR*0.95).attr('fill',textoSobre(pc)).text(_rank[i]);
     // foto-burbuja con aro del partido
+    const dibujarIniBurbuja=()=>{
+      gr.append('circle').attr('cx',cx).attr('cy',cy).attr('r',rBub-3).attr('fill','#EEF3F6');
+      gr.append('text').attr('x',cx).attr('y',cy).attr('text-anchor','middle').attr('dominant-baseline','central')
+        .attr('font-family','Space Grotesk').attr('font-weight',700).attr('font-size',rBub*.62).attr('fill','#6B8CA5').text(iniciales(d.nombre));
+    };
     if(d.foto){
       const cid=`bc-${svgSel.slice(1)}-${d.ou}`;
       defs.append('clipPath').attr('id',cid).append('circle').attr('cx',cx).attr('cy',cy).attr('r',rBub-3);
       gr.append('image').attr('href',d.foto).attr('x',cx-(rBub-3)).attr('y',cy-(rBub-3))
         .attr('width',2*(rBub-3)).attr('height',2*(rBub-3)).attr('clip-path',`url(#${cid})`)
-        .attr('preserveAspectRatio','xMidYMid slice');
+        .attr('preserveAspectRatio','xMidYMid slice')
+        .on('error', function(){ d3.select(this).remove(); dibujarIniBurbuja(); });
     } else {
-      gr.append('circle').attr('cx',cx).attr('cy',cy).attr('r',rBub-3).attr('fill','#EEF3F6');
-      gr.append('text').attr('x',cx).attr('y',cy).attr('text-anchor','middle').attr('dominant-baseline','central')
-        .attr('font-family','Space Grotesk').attr('font-weight',700).attr('font-size',rBub*.62).attr('fill','#6B8CA5').text(iniciales(d.nombre));
+      dibujarIniBurbuja();
     }
     gr.append('circle').attr('cx',cx).attr('cy',cy).attr('r',rBub).attr('fill','none').attr('stroke',pc).attr('stroke-width',3);
   });
@@ -854,6 +858,21 @@ function derivarConsejerias(){
       return { area, corta: tit.area_corta, sigla: tit.sigla, color: tit.color, n: ms.length, titular_ou: tit.ou };
     });
 }
+
+// Fallback de fotos: si una imagen (p. ej. un enlace externo tipo Facebook, que
+// caduca o bloquea el hotlink) no carga, se sustituye por las iniciales en vez de
+// mostrar el icono de imagen rota. Un único listener en captura cubre burbujas,
+// ficha y tooltip (los eventos 'error' de <img> no burbujean).
+document.addEventListener('error', function(ev){
+  const im = ev.target;
+  if(!im || im.tagName !== 'IMG' || im.dataset.ini == null || im.dataset.roto) return;
+  im.dataset.roto = '1';
+  const ph = document.createElement('div');
+  ph.className = im.dataset.fallback || 'ini';
+  if(im.style && im.style.borderColor) ph.style.borderColor = im.style.borderColor;
+  ph.textContent = im.dataset.ini;
+  im.replaceWith(ph);
+}, true);
 
 function arrancar(){
   fetch(SB_URL + '/cp_altos_cargos_viz?select=*&order=orden_area.asc,rango.asc', { headers: SB_HEADERS })

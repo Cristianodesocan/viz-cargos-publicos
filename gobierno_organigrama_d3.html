@@ -91,6 +91,7 @@
   .ficha-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
   .ficha-nombre{font-family:'Space Grotesk';font-size:1.5rem;font-weight:700;line-height:1.12;color:var(--navy-dark);}
   .ficha-cargo{font-weight:600;color:var(--navy-mid);margin:4px 0 0;font-size:.98rem;}
+  .ficha-area{color:var(--text-muted);margin:2px 0 0;font-size:.85rem;font-weight:500;}
   .badge-partido{display:inline-flex;align-items:center;gap:7px;border-radius:99px;
     padding:5px 13px;font-family:'Space Grotesk';font-weight:700;font-size:12px;
     border:1.5px solid;background:#fff;white-space:nowrap;}
@@ -364,6 +365,7 @@ function pintarFicha(d){
           <div>
             <div class="ficha-nombre">${d.nombre}</div>
             <div class="ficha-cargo">${d.cargo}</div>
+            <div class="ficha-area">${d.area}</div>
           </div>
           <span class="badge-partido" style="border-color:${pc};color:${pc}">${marcaPartido(d.partido,20)}${pn}</span>
         </div>
